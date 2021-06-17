@@ -1,0 +1,416 @@
+{
+    "result": [
+        {
+            "@type": "d",
+            "@rid": "#36:0",
+            "@version": 2,
+            "@class": "Mutation",
+            "date": "0019-01-04 00:00:00",
+            "vertex_id": "34671371a0093201c11509739ecfacde15d755247096e42be180c0f6b0d57316",
+            "code_service_ch": null,
+            "out_dispositionDeMutation": [
+                "#38:0"
+            ],
+            "reference_document": null,
+            "nature_mutation": "Vente",
+            "@fieldTypes": "date=t,out_dispositionDeMutation=g"
+        },
+        {
+            "@type": "d",
+            "@rid": "#38:0",
+            "@version": 1,
+            "@class": "dispositionDeMutation",
+            "in": "#27:0",
+            "name": "dispositions",
+            "to_class": "Disposition",
+            "from_class": "Mutation",
+            "out": "#36:0",
+            "@fieldTypes": "in=x,out=x"
+        },
+        {
+            "@type": "d",
+            "@rid": "#27:0",
+            "@version": 5,
+            "@class": "Disposition",
+            "out_adresseDeDisposition": [
+                "#28:0"
+            ],
+            "valeur_fonciere": 37220,
+            "vertex_id": "8cbb9e3d4ccd44d43af37f57342bb6265e8715684c1a72f527412d14ef4021bb",
+            "out_parcelleDeDisposition": [
+                "#29:0"
+            ],
+            "out_lotDeDisposition": [
+                "#34:0"
+            ],
+            "in_dispositionDeMutation": [
+                "#38:0"
+            ],
+            "@fieldTypes": "out_adresseDeDisposition=g,valeur_fonciere=f,out_parcelleDeDisposition=g,out_lotDeDisposition=g,in_dispositionDeMutation=g"
+        },
+        {
+            "@type": "d",
+            "@rid": "#34:0",
+            "@version": 1,
+            "@class": "lotDeDisposition",
+            "in": "#21:0",
+            "name": "biens_fonciers",
+            "to_class": "Lot",
+            "from_class": "Disposition",
+            "out": "#27:0",
+            "@fieldTypes": "in=x,out=x"
+        },
+        {
+            "@type": "d",
+            "@rid": "#21:0",
+            "@version": 4,
+            "@class": "Lot",
+            "out_volumeDeLot": [
+                "#25:0"
+            ],
+            "surface_carrez_lot": 19,
+            "in_lotDeDisposition": [
+                "#34:0"
+            ],
+            "vertex_id": "5cd84ee30dfbde75cbc335482c6a31e7ae2f96ec51a9c98fbd1453c32d3ebf46",
+            "no_lot": 8,
+            "out_localDeLot": [
+                "#23:0"
+            ],
+            "@fieldTypes": "out_volumeDeLot=g,in_lotDeDisposition=g,out_localDeLot=g"
+        },
+        {
+            "@type": "d",
+            "@rid": "#23:0",
+            "@version": 1,
+            "@class": "localDeLot",
+            "in": "#17:0",
+            "name": "biens_foncier",
+            "to_class": "Local",
+            "from_class": "Lot",
+            "out": "#21:0",
+            "@fieldTypes": "in=x,out=x"
+        },
+        {
+            "@type": "d",
+            "@rid": "#17:0",
+            "@version": 5,
+            "@class": "Local",
+            "out_adresseDeLocal": [
+                "#18:0",
+                "#18:916"
+            ],
+            "identifiant_local": "Appartement",
+            "vertex_id": "2e66622391a179e07d2a6c1bb76e92b532ecc39978997c01f12caaa5d62b2f8d",
+            "nombre_pieces_principales": "1",
+            "code_type_local": "2.0",
+            "surface_reelle_bati": "20",
+            "in_localDeLot": [
+                "#23:0",
+                "#23:190"
+            ],
+            "@fieldTypes": "out_adresseDeLocal=g,in_localDeLot=g"
+        },
+        {
+            "@type": "d",
+            "@rid": "#18:0",
+            "@version": 1,
+            "@class": "adresseDeLocal",
+            "in": "#14:0",
+            "name": "addresse",
+            "to_class": "Adresse",
+            "from_class": "Local",
+            "out": "#17:0",
+            "@fieldTypes": "in=x,out=x"
+        },
+        {
+            "@type": "d",
+            "@rid": "#14:0",
+            "@version": 5,
+            "@class": "Adresse",
+            "code_postal": "1000",
+            "voie": "DE MONTHOLON",
+            "code_voie": "2730",
+            "commune": "BOURG-EN-BRESSE",
+            "vertex_id": "22566c13d9b787f0af2657e9530f9a04dcd3c21cbc3206cdb1477da1a3203874",
+            "b_t_q": "",
+            "in_adresseDeDisposition": [
+                "#28:0",
+                "#28:857"
+            ],
+            "no_voie": "26",
+            "location": {
+                "@type": "d",
+                "@version": 0,
+                "@class": "OPoint",
+                "coordinates": [
+                    5.210441,
+                    46.198689
+                ]
+            },
+            "code_commune": "53",
+            "type_de_voie": "RUE",
+            "in_adresseDeLocal": [
+                "#18:0",
+                "#18:916"
+            ],
+            "@fieldTypes": "in_adresseDeDisposition=g,in_adresseDeLocal=g"
+        },
+        {
+            "@type": "d",
+            "@rid": "#28:857",
+            "@version": 1,
+            "@class": "adresseDeDisposition",
+            "in": "#14:0",
+            "name": "adresse",
+            "to_class": "Adresse",
+            "from_class": "Disposition",
+            "out": "#27:857",
+            "@fieldTypes": "in=x,out=x"
+        },
+        {
+            "@type": "d",
+            "@rid": "#27:857",
+            "@version": 5,
+            "@class": "Disposition",
+            "out_adresseDeDisposition": [
+                "#28:857"
+            ],
+            "valeur_fonciere": 38000,
+            "vertex_id": "c69bf69c505d4e735563ef4f09aee4b9151163beebef4a1182e4b22cf59c7af6",
+            "out_parcelleDeDisposition": [
+                "#29:857"
+            ],
+            "out_lotDeDisposition": [
+                "#34:188"
+            ],
+            "in_dispositionDeMutation": [
+                "#38:857"
+            ],
+            "@fieldTypes": "out_adresseDeDisposition=g,valeur_fonciere=f,out_parcelleDeDisposition=g,out_lotDeDisposition=g,in_dispositionDeMutation=g"
+        },
+        {
+            "@type": "d",
+            "@rid": "#38:857",
+            "@version": 1,
+            "@class": "dispositionDeMutation",
+            "in": "#27:857",
+            "name": "dispositions",
+            "to_class": "Disposition",
+            "from_class": "Mutation",
+            "out": "#36:485",
+            "@fieldTypes": "in=x,out=x"
+        },
+        {
+            "@type": "d",
+            "@rid": "#36:485",
+            "@version": 2,
+            "@class": "Mutation",
+            "date": "0019-01-24 00:00:00",
+            "vertex_id": "ea3fb9cc1244d185dacb2ba1d283b2bb1b376109b00fd3685e1ddba2110128f4",
+            "code_service_ch": null,
+            "out_dispositionDeMutation": [
+                "#38:857"
+            ],
+            "reference_document": null,
+            "nature_mutation": "Vente",
+            "@fieldTypes": "date=t,out_dispositionDeMutation=g"
+        },
+        {
+            "@type": "d",
+            "@rid": "#29:857",
+            "@version": 1,
+            "@class": "parcelleDeDisposition",
+            "in": "#13:0",
+            "name": "parcelle",
+            "to_class": "Parcelle",
+            "from_class": "Disposition",
+            "out": "#27:857",
+            "@fieldTypes": "in=x,out=x"
+        },
+        {
+            "@type": "d",
+            "@rid": "#13:0",
+            "@version": 3,
+            "@class": "Parcelle",
+            "no_plan": "298",
+            "in_parcelleDeDisposition": [
+                "#29:0",
+                "#29:857"
+            ],
+            "code_departement": "1",
+            "prefixe_de_section": null,
+            "vertex_id": "b7ccbb51b2f7204f1db7882b69fa7ea8cc53e3b8798c565f7eb3088f216da2ac",
+            "section": "AI",
+            "location": null,
+            "code_commune": "53",
+            "@fieldTypes": "in_parcelleDeDisposition=g"
+        },
+        {
+            "@type": "d",
+            "@rid": "#34:188",
+            "@version": 1,
+            "@class": "lotDeDisposition",
+            "in": "#21:187",
+            "name": "biens_fonciers",
+            "to_class": "Lot",
+            "from_class": "Disposition",
+            "out": "#27:857",
+            "@fieldTypes": "in=x,out=x"
+        },
+        {
+            "@type": "d",
+            "@rid": "#21:187",
+            "@version": 4,
+            "@class": "Lot",
+            "out_volumeDeLot": [
+                "#25:188"
+            ],
+            "surface_carrez_lot": null,
+            "in_lotDeDisposition": [
+                "#34:188"
+            ],
+            "vertex_id": "1e295356473a309ab98a9175b507371055c80adc3c1395c28261dc3e9282dd79",
+            "no_lot": 114,
+            "out_localDeLot": [
+                "#23:190"
+            ],
+            "@fieldTypes": "out_volumeDeLot=g,in_lotDeDisposition=g,out_localDeLot=g"
+        },
+        {
+            "@type": "d",
+            "@rid": "#25:188",
+            "@version": 1,
+            "@class": "volumeDeLot",
+            "in": "#20:0",
+            "name": "biens_foncier",
+            "to_class": "Volume",
+            "from_class": "Lot",
+            "out": "#21:187",
+            "@fieldTypes": "in=x,out=x"
+        },
+        {
+            "@type": "d",
+            "@rid": "#20:0",
+            "@version": 3,
+            "@class": "Volume",
+            "in_volumeDeLot": [
+                "#25:0",
+                "#25:188"
+            ],
+            "vertex_id": "8eba0e6ce87f7684d641b2da1a2cc5ba278acd2625dd5b68839a3fdbcc03a97b",
+            "no_volume": null,
+            "@fieldTypes": "in_volumeDeLot=g"
+        },
+        {
+            "@type": "d",
+            "@rid": "#23:190",
+            "@version": 1,
+            "@class": "localDeLot",
+            "in": "#17:0",
+            "name": "biens_foncier",
+            "to_class": "Local",
+            "from_class": "Lot",
+            "out": "#21:187",
+            "@fieldTypes": "in=x,out=x"
+        },
+        {
+            "@type": "d",
+            "@rid": "#18:916",
+            "@version": 1,
+            "@class": "adresseDeLocal",
+            "in": "#14:0",
+            "name": "addresse",
+            "to_class": "Adresse",
+            "from_class": "Local",
+            "out": "#17:0",
+            "@fieldTypes": "in=x,out=x"
+        },
+        {
+            "@type": "d",
+            "@rid": "#25:0",
+            "@version": 1,
+            "@class": "volumeDeLot",
+            "in": "#20:0",
+            "name": "biens_foncier",
+            "to_class": "Volume",
+            "from_class": "Lot",
+            "out": "#21:0",
+            "@fieldTypes": "in=x,out=x"
+        },
+        {
+            "@type": "d",
+            "@rid": "#28:0",
+            "@version": 1,
+            "@class": "adresseDeDisposition",
+            "in": "#14:0",
+            "name": "adresse",
+            "to_class": "Adresse",
+            "from_class": "Disposition",
+            "out": "#27:0",
+            "@fieldTypes": "in=x,out=x"
+        },
+        {
+            "@type": "d",
+            "@rid": "#29:0",
+            "@version": 1,
+            "@class": "parcelleDeDisposition",
+            "in": "#13:0",
+            "name": "parcelle",
+            "to_class": "Parcelle",
+            "from_class": "Disposition",
+            "out": "#27:0",
+            "@fieldTypes": "in=x,out=x"
+        }
+    ],
+    "dbStats": {
+        "@type": "d",
+        "@version": 0,
+        "averageLoadRecordTimeMs": 0,
+        "prefetchedRidbagsCount": 0,
+        "maxRidbagPrefetchTimeMs": 0,
+        "minRidbagPrefetchTimeMs": 0,
+        "loadedRecords": 24,
+        "maxLoadRecordTimeMs": 0,
+        "minLoadRecordTimeMs": 0,
+        "ridbagPrefetchTimeMs": 0,
+        "@fieldTypes": "averageLoadRecordTimeMs=l,prefetchedRidbagsCount=l,maxRidbagPrefetchTimeMs=l,minRidbagPrefetchTimeMs=l,loadedRecords=l,maxLoadRecordTimeMs=l,minLoadRecordTimeMs=l,ridbagPrefetchTimeMs=l"
+    },
+    "executionPlan": {
+        "@type": "d",
+        "@version": 0,
+        "cost": 0,
+        "prettyPrint": "+ FETCH FROM RIDs\n  [#36:0]\n+ DEPTH-FIRST TRAVERSE \n  [*]",
+        "type": "QueryExecutionPlan",
+        "steps": [
+            {
+                "@type": "d",
+                "@version": 0,
+                "cost": -1,
+                "subSteps": [],
+                "name": "FetchFromRidsStep",
+                "description": "+ FETCH FROM RIDs\n  [#36:0]",
+                "type": "FetchFromRidsStep",
+                "targetNode": "FetchFromRidsStep",
+                "javaType": "com.orientechnologies.orient.core.sql.executor.FetchFromRidsStep",
+                "@fieldTypes": "cost=l"
+            },
+            {
+                "@type": "d",
+                "@version": 0,
+                "cost": 0,
+                "subSteps": [],
+                "name": "DepthFirstTraverseStep",
+                "description": "+ DEPTH-FIRST TRAVERSE \n  [*]",
+                "type": "DepthFirstTraverseStep",
+                "targetNode": "DepthFirstTraverseStep",
+                "javaType": "com.orientechnologies.orient.core.sql.executor.DepthFirstTraverseStep",
+                "@fieldTypes": "cost=l"
+            }
+        ],
+        "javaType": "com.orientechnologies.orient.core.sql.executor.OSelectExecutionPlan",
+        "@fieldTypes": "cost=l,steps=z"
+    },
+    "elapsedMs": 3,
+    "notification": "Query executed in 0.568 sec. Returned 24 record(s)"
+}
