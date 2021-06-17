@@ -1,0 +1,64 @@
+localhost:80 {
+    log {
+        output file /var/log/caddy-access.log {
+            roll_size 1gb
+            roll_keep 5
+            roll_keep_for 720h
+            level DEBUG
+        }
+    
+    }
+    root * /var/www
+    file_server /ui*
+
+    route /notebooks* {
+        reverse_proxy 127.0.0.1:8080
+    }
+    route /callback* {
+        reverse_proxy 127.0.0.1:8081
+    }
+
+    route /browser* {
+        reverse_proxy 127.0.0.1:8888
+    }
+
+    @code_callbacks {
+        path_regexp callback \./usr/local/devtools/lib/code-server\.
+    }
+
+
+    route @code_callbacks {
+        reverse_proxy 127.0.0.1:8081
+    }
+
+    route /gitwebui* {  
+        reverse_proxy 127.0.0.1:9000
+    }
+
+
+    route /code* {
+        uri strip_prefix /code
+        reverse_proxy 127.0.0.1:8081
+    }
+    @not_ui {
+	    not path /ui/*
+        path /*
+    }
+# caddy validate --config usr/local/lib/caddy/Caddyfile
+    route @not_ui {
+        reverse_proxy 127.0.0.1:8265
+    }
+
+    redir /code     /code/
+    redir /notebooks /notebooks/
+    redir /dashboard /dashboard/
+    redir /ui     /ui/
+    redir /gitwebui     /gitwebui/
+
+    header -X-Frame-Options
+    header -Content-Security-Policy 
+
+}
+
+
+

@@ -1,0 +1,21 @@
+[Unit]
+Description=Code Server IDE
+
+[Service]
+Type=simple
+PassEnvironment=SHELL PATH
+ExecStartPre=/usr/local/devtools/bin/conda init bash
+ExecStart=/usr/local/devtools/bin/code-server \
+    --bind-addr=0.0.0.0:8081 \
+    --auth=none \
+    --disable-telemetry \
+    --disable-update-check \
+#    --home=/code/ \
+    --enable-proposed-api=ms-python.python
+
+User=USER
+Group=USER
+WorkingDirectory=/home/USER
+
+[Install]
+WantedBy=multi-user.target

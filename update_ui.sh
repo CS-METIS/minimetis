@@ -1,0 +1,3 @@
+kubectl cp -n sdorgan assets/mining_plane/ui/image/www/Skeleton-2.0.4 metis-mining-ui-b748f68f5-k2xl4:/usr/local/apache2/htdocs
+kubectl cp -n sdorgan assets/mining_plane/ui/image/www/fontawesome-free-5.15.2-web metis-mining-ui-b748f68f5-k2xl4:/usr/local/apache2/htdocs
+kubectl cp -n sdorgan assets/mining_plane/ui/image/www/index.html metis-mining-ui-b748f68f5-k2xl4:/usr/local/apache2/htdocs/index.html

@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ${app_name}-lb
+spec:
+  selector:
+    app: ${app_name}
+  ports:
+    - protocol: TCP
+      port: ${port}
+      targetPort: ${target_port}
+  type: LoadBalancer

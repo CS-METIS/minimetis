@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>Titre</title>
+        <link rel="stylesheet" href="Skeleton-2.0.4/css/normalize.css">
+        <link rel="stylesheet" href="Skeleton-2.0.4/css/skeleton.css">
+        <style>
+        .main {
+             padding: 0; margin: 0px;
+        }
+        .container_size {
+            padding: 0px; margin: 0px;
+        }
+
+        .hidden {
+            visibility: hidden;
+            position: absolute;
+            left: 0; top: 0;
+            height:0; width:0;
+            border: none;
+        }
+
+        .visible {
+           padding:0px; 
+           border: 0; 
+           width: 100vw; 
+           height: 92vh
+        }
+
+        </style>
+
+    </head>
+
+    <body style="border: 0; width: 100%; height: 100%">
+    <h6 style="color: #555; letter-spacing: .1rem; padding: 10px 10px;">
+        <div class="container, main">
+            <div class="rows">
+                <div class="four columns" style="margin-left:10px; vertical-align: middle;">EOPF SOFTWARE DEVELOPMENT ENVIRONMENT</div>
+                <div class="seven columns">
+                    <div style="text-align: right;">
+                        <a 
+                            class="button" 
+                            onclick="switch_frame('code')"
+                        >
+                        Code Server
+                        </a>
+                        <a 
+                            class="button"
+                            onclick="switch_frame('notebooks')"
+                        >
+                        JupyterLab
+                        </a>
+                         <a 
+                            class="button"
+                            onclick="switch_frame('dashboard')"
+                        >
+                        Dashboard
+                        </a>
+                        <a 
+                            class="button"
+                            onclick="switch_frame('gitwebui')"
+                        >
+                        Git UI
+                        </a>
+                        <a 
+                            class="button"
+                            onclick="switch_frame('browser')"
+                        >
+                        Browser
+                        </a>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </h6>
+    <hr style="width:100%;text-align:left;margin:0">
+    <iframe id="code" src="../code/?folder=/home/USER/eopf" class="visible"></iframe>
+    <iframe id="notebooks" src="../notebooks/" class="hidden"></iframe>
+    <iframe id="browser" src="../browser/" class="hidden"></iframe>
+    <iframe id="gitwebui" src="../gitwebui/#/repository?path=%2Fhome%2FUSER%2Feopf" class="hidden"></iframe>
+    <iframe id="dashboard" src="/" class="hidden"></iframe>
+     <script type="text/javascript">
+        var elements = ["code", "notebooks", "browser", "dashboard", "gitwebui"]
+        function switch_frame(frame) {
+            elements.forEach(f => {
+                elt = document.getElementById(f);
+                if (f === frame){
+                    elt.className="visible";
+                }else{
+                    elt.className="hidden";
+                }
+            });
+
+        }
+    </script>
+    </body>
+       
+</html>

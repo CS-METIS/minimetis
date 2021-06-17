@@ -1,0 +1,9 @@
+module.exports = [
+    {
+        "name": "Metis Kong",
+        "type": "key_auth",
+        "kong_admin_url": "http://kong:8001",
+        "kong_api_key": "kong@metis",
+        "health_checks": false,
+    }
+]

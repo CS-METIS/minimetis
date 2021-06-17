@@ -1,0 +1,67 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: metis-studio-service
+spec:
+  type: LoadBalancer
+  selector:
+    app: metis-studio
+  ports:
+    - name: jupyterlab
+      protocol: TCP
+      port: 8080
+      targetPort: 8080
+    - name: codeserver
+      protocol: TCP
+      port: 8081
+      targetPort: 8081
+    - name: filebrowser
+      protocol: TCP
+      port: 8082
+      targetPort: 8082
+    - name: ungit
+      protocol: TCP
+      port: 8083
+      targetPort: 8083
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: metis-sudio
+  labels:
+    app: metis-studio
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: metis-studio
+  template:
+    metadata:
+      labels:
+        app: metis-studio
+    spec:
+      containers:
+      - name: metis-studio
+        image: ${image_tag}
+        securityContext:
+          privileged: true
+        env:
+          - name: USERNAME
+            value: ${username}
+          - name: USERFULLNAME
+            value: "${firstname} ${lastname}"
+          - name: USEREMAIL
+            value: ${email}
+        ports:
+        - name: jupyterlab
+          containerPort: 8080
+        - name: codeserver
+          containerPort: 8081
+        - name: filebrowser
+          containerPort: 8888
+        - name: ungit 
+          containerPort: 9000
+        resources:
+          limits:
+            cpu: "4"
+            memory: 6Gi

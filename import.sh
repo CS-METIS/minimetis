@@ -1,0 +1,1 @@
+java -jar /home/safescale/METIS/assets/mining_plane/scdf/spring-cloud-dataflow-shell-2.7.1.jar             --dataflow.uri=http://10.104.12.82:8080             --spring.shell.commandFile=/home/safescale/METIS/assets/mining_plane/scdf/import.txt

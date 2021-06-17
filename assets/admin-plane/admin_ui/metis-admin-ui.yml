@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: metis-admin-ui-service
+spec:
+  type: LoadBalancer
+  selector:
+    app: metis-admin-ui
+  ports:
+    - name: ui
+      protocol: TCP
+      port: 80
+      targetPort: 80
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: metis-admin-ui
+  labels:
+    app: metis-admin-ui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: metis-admin-ui
+  template:
+    metadata:
+      labels:
+        app: metis-admin-ui
+    spec:
+      containers:
+      - name: metis-admin-ui
+        image: admin-ui:0.1
+        ports:
+        - name: ui
+          containerPort: 80
+        resources:
+          limits:
+            cpu: "0.5"
+            memory: 300Mi

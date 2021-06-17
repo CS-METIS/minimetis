@@ -1,0 +1,1 @@
+docker run -ti --env-file studio.env metis/studio:0.1

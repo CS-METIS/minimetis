@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: metis-mining-ui-service
+spec:
+  type: LoadBalancer
+  selector:
+    app: metis-mining-ui
+  ports:
+    - name: ui
+      protocol: TCP
+      port: 80
+      targetPort: 80
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: metis-mining-ui
+  labels:
+    app: metis-mining-ui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: metis-mining-ui
+  template:
+    metadata:
+      labels:
+        app: metis-mining-ui
+    spec:
+      containers:
+      - name: metis-mining-ui
+        image: ${image_tag}
+        env:
+          - name: USERNAME
+            value: ${username}
+          - name: DOMAIN
+            value: ${domain}
+        ports:
+        - name: ui
+          containerPort: 80
+        resources:
+          limits:
+            cpu: "0.5"
+            memory: 300Mi

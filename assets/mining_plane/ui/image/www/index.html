@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>Titre</title>
+        <link rel="stylesheet" href="fontawesome-free-5.15.2-web/css/all.css">
+        <link rel="stylesheet" href="Skeleton-2.0.4/css/normalize.css">
+        <link rel="stylesheet" href="Skeleton-2.0.4/css/skeleton.css">
+        <style>
+        .main {
+             padding: 0; margin: 0px;
+        }
+        .container_size {
+            padding: 0px; margin: 0px;
+        }
+
+        .hidden {
+            visibility: hidden;
+            position: absolute;
+            left: 0; top: 0;
+            height:0; width:0;
+            border: none;
+        }
+
+        .visible {
+           padding:0px; 
+           border: 0; 
+           width: 100vw; 
+           height: 92vh
+        }
+
+        </style>
+
+    </head>
+
+    <body style="border: 0; width: 100%; height: 100%">
+    <h6 style="color: #555; letter-spacing: .1rem; padding: 10px 10px;">
+        <div class="container, main">
+            <div class="rows">
+                <div class="four columns" style="margin-left:10px; vertical-align: middle;">METIS MINING PLANE</div>
+                <div class="seven columns">
+                    <div style="text-align: right;">
+                        <i class="fas fa-external-link-alt" onclick="open_visible_frame()"></i>
+                        <i class="fas fa-sync"  onclick="refresh_visible_frame()"></i>
+                        <i class="fas fa-eye"  onclick="open_dashboard()"></i>
+                        <a 
+                            class="button" 
+                            onclick="switch_frame('code')"
+                        >
+                        Code
+                        </a>
+                        <a 
+                            class="button"
+                            onclick="switch_frame('notebooks')"
+                        >
+                        Notebooks
+                        </a>
+                         <a 
+                            class="button"
+                            onclick="switch_frame('workflows')"
+                        >
+                        Worflows
+                        </a>
+                        <a 
+                            class="button"
+                            onclick="switch_frame('browser')"
+                        >
+                        Browser
+                        </a>
+                        <a 
+                            class="button"
+                            onclick="switch_frame('gitlab')"
+                        >
+                        Gitlab
+                        </a>
+                         <a 
+                            class="button"
+                            onclick="switch_frame('ungit')"
+                        >
+                        Ungit
+                        </a>
+
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </h6>
+    <hr style="width:100%;text-align:left;margin:0">
+    <iframe id="code" src="https://codeserver-sdorgan.minimetis.dev/" class="visible"></iframe>
+    <iframe id="notebooks" src="https://jupyterlab-sdorgan.minimetis.dev/" class="hidden"></iframe>
+    <iframe id="workflows" src="https://scdf-sdorgan.minimetis.dev/dashboard/index.html" class="hidden"></iframe>
+    <iframe id="browser" src="https://filebrowser-sdorgan.minimetis.dev/" class="hidden"></iframe>
+    <iframe id="gitlab" src="https://minimetis.dev/gitlab" class="hidden"></iframe>
+    <iframe id="ungit" src="https://ungit-sdorgan.minimetis.dev/" class="hidden"></iframe>
+    <script type="text/javascript">
+        var elements = [["code", 1], ["notebooks", 1], ["workflows", 0], ["browser", 1], ["gitlab", 1], ["ungit", 1]]
+
+        function switch_frame(frame) {
+            elements.forEach(a => {
+                f = a[0]
+                elt = document.getElementById(f);
+                if (f === frame){
+                    elt.className="visible";
+                    if (a[1] === 0){
+                        elt.src = elt.src;
+                        a[1] = 1;
+                    }
+                }else{
+                    elt.className="hidden";
+                }
+            });
+        }
+        function refresh_visible_frame(){
+            elements.forEach(a => {
+                f = a[0]
+                elt = document.getElementById(f);
+                if (elt.className === "visible"){
+                    elt.src = elt.src;
+                }
+
+            });
+        }
+         function open_visible_frame(){
+            elements.forEach(a => {
+                f = a[0]
+                elt = document.getElementById(f);
+                if (elt.className === "visible"){
+                    window.open(elt.src)
+                }
+
+            });
+        }
+        function open_dashboard(){
+            window.open("https://jupyterlab-sdorgan.minimetis.dev/voila/tree/dgsi/dashboards")
+        }
+    </script>
+    </body>
+       
+</html>

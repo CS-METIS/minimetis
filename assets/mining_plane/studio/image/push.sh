@@ -1,0 +1,1 @@
+cp $(find images -type f | shuf -n 1) ./stream-data/input

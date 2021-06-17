@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: compute-resources
+spec:
+  hard:
+    limits.cpu: "${cpu}"
+    limits.memory: ${memory}
+    limits.nvidia.com/gpu: ${gpu}
+    requests.storage: ${storage}

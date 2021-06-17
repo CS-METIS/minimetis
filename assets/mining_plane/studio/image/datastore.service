@@ -1,0 +1,14 @@
+[Unit]
+Description=Metis datastore
+
+[Service]
+Type=simple
+PassEnvironment=SHELL PATH
+ExecStartPre=/usr/bin/bash -c "/usr/bin/mkdir /home/USER/data && /usr/local/devtools/bin/rclone mkdir metis-datastore:USER"
+ExecStart=/usr/bin/s3fs USER /home/USER/data -o passwd_file=/home/USER/.config/credentials,use_path_request_style,url=https://osu.eu-west-2.outscale.com
+User=USER
+Group=USER
+WorkingDirectory=/home/USER
+
+[Install]
+WantedBy=multi-user.target

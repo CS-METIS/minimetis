@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>Titre</title>
+        <link rel="stylesheet" href="fontawesome-free-5.15.2-web/css/all.css">
+        <link rel="stylesheet" href="Skeleton-2.0.4/css/normalize.css">
+        <link rel="stylesheet" href="Skeleton-2.0.4/css/skeleton.css">
+        <style>
+        .main {
+             padding: 0; margin: 0px;
+        }
+        .container_size {
+            padding: 0px; margin: 0px;
+        }
+
+        .hidden {
+            visibility: hidden;
+            position: absolute;
+            left: 0; top: 0;
+            height:0; width:0;
+            border: none;
+        }
+
+        .visible {
+           padding:0px; 
+           border: 0; 
+           width: 100vw; 
+           height: 92vh
+        }
+
+        </style>
+
+    </head>
+
+    <body style="border: 0; width: 100%; height: 100%">
+    <h6 style="color: #555; letter-spacing: .1rem; padding: 10px 10px;">
+        <div class="container, main">
+            <div class="rows">
+                <div class="four columns" style="margin-left:10px; vertical-align: middle;">METIS ADMIN PLANE</div>
+                <div class="seven columns">
+                    <div style="text-align: right;">
+                        <i class="fas fa-external-link-alt" onclick="open_visible_frame()"></i>
+                        <i class="fas fa-sync"  onclick="refresh_visible_frame()"></i>
+                        <a 
+                            class="button" 
+                            onclick="switch_frame('portainer')"
+                        >
+                        Portainer
+                        </a>
+                        <a 
+                            class="button"
+                            onclick="switch_frame('konga')"
+                        >
+                        Konga
+                        </a>
+                         <a 
+                            class="button"
+                            onclick="switch_frame('keycloak')"
+                        >
+                        Keycloak
+                        </a>
+                        <a 
+                            class="button"
+                            onclick="switch_frame('gitlab')"
+                        >
+                        Gitlab
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </h6>
+    <hr style="width:100%;text-align:left;margin:0">
+    <iframe id="portainer" src="https://portainer.minimetis.dev/" class="visible"></iframe>
+    <iframe id="konga" src="https://minimetis.dev/konga/" class="hidden"></iframe>
+    <iframe id="keycloak" src="https://minimetis.dev/keycloak/auth/admin/" class="hidden"></iframe>
+    <iframe id="gitlab" src="https://minimetis.dev/gitlab/" class="hidden"></iframe>
+    <script type="text/javascript">
+        var elements = [["portainer", 1], ["konga", 1], ["keycloak", 0], ["gitlab", 1]]
+
+        function switch_frame(frame) {
+            elements.forEach(a => {
+                f = a[0]
+                elt = document.getElementById(f);
+                if (f === frame){
+                    elt.className="visible";
+                    if (a[1] === 0){
+                        elt.src = elt.src;
+                        a[1] = 1;
+                    }
+                }else{
+                    elt.className="hidden";
+                }
+            });
+        }
+        function refresh_visible_frame(){
+            elements.forEach(a => {
+                f = a[0]
+                elt = document.getElementById(f);
+                if (elt.className === "visible"){
+                    elt.src = elt.src;
+                }
+
+            });
+        }
+         function open_visible_frame(){
+            elements.forEach(a => {
+                f = a[0]
+                elt = document.getElementById(f);
+                if (elt.className === "visible"){
+                    window.open(elt.src)
+                }
+
+            });
+        }
+    </script>
+    </body>
+       
+</html>
