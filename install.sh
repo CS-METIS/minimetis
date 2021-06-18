@@ -37,6 +37,8 @@ helm add_repo bitnami https://charts.bitnami.com/bitnami
 helm update repo
 
 # start minikube with Project Calico CNI
+minikube addons configure registry-creds
+minikube addons enable registry-creds
 minikube start --network-plugin=cni --cni=calico --kubernetes-version v1.18.16 --driver=none
 
 # Run minikube tunnel to enable Kubernetes LoadBalancer

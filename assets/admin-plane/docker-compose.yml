@@ -170,6 +170,19 @@ services:
       - ${PWD}/gitlab/CA.crt:/usr/local/share/ca-certificates/CA.crt # openssl trusted certificates (components)
     networks:
       - admin-net
+  registry:
+    image: registry:2
+    container_name: registry
+    hostname: registry
+    extra_hosts:
+      - ${DOMAIN}:172.17.0.1
+    ports:
+      - 5000:5000
+    volumes:
+      - registry_data:/var/lib/registry
+    networks:
+      - admin-net
+  
 volumes:
   db-data-kong-postgres:
   portainer_data:
@@ -178,6 +191,7 @@ volumes:
   gitlab_config:
   gitlab_logs:
   gitlab_data:
+  registry_data:
 
 networks:
   admin-net:
