@@ -29,16 +29,16 @@ def deploy():
     # )
     server_key = "pki/server.key"
     server_cert = "pki/server.pem"
-    ca_cert = "pki/CA.pem"
-    #create_keystore(
+    # ca_cert = "pki/CA.pem"
+    # create_keystore(
     #    keypath=server_key,
     #    certpath=server_cert,
     #    password=metis_admin_password,
     #    output=f"{admin_assets}/keycloak/kc.pkcs12",
-    #)
-    #shutil.copy(ca_cert, f"{admin_assets}/gitlab/CA.crt")
-    #shutil.copy(server_cert, f"{admin_assets}/gitlab/ssl/{domain}.crt")
-    #shutil.copy(server_key, f"{admin_assets}/gitlab/ssl/{domain}.key")
+    # )
+    # shutil.copy(ca_cert, f"{admin_assets}/gitlab/CA.crt")
+    # shutil.copy(server_cert, f"{admin_assets}/gitlab/ssl/{domain}.crt")
+    # shutil.copy(server_key, f"{admin_assets}/gitlab/ssl/{domain}.key")
 
     compose = Compose(f"{admin_assets}/docker-compose.yml")
     compose.up(["kong", "konga", "keycloak", "portainer"])
