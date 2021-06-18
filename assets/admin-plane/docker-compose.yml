@@ -177,7 +177,7 @@ services:
     extra_hosts:
       - ${DOMAIN}:172.17.0.1
     ports:
-      - 5000:5000
+      - ${PRIVATE_IP}:5000:5000
     volumes:
       - registry_data:/var/lib/registry
     networks:
