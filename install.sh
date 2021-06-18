@@ -40,7 +40,7 @@ helm repo add bitnami https://charts.bitnami.com/bitnami
 helm repo update
 
 # start minikube with Project Calico CNI
-minikube start --network-plugin=cni --cni=calico --kubernetes-version=v${KUBE_VERSION} --driver=none --insecure-registry=${PRIVATE_IP}
+minikube start --network-plugin=cni --cni=calico --kubernetes-version=v${KUBE_VERSION} --driver=none --insecure-registry=${PRIVATE_IP}:5000
 
 # Run minikube tunnel to enable Kubernetes LoadBalancer
 nohup minikube tunnel > /dev/null&
