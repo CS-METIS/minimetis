@@ -12,11 +12,8 @@ sudo apt-get update
 sudo apt-get install -y docker-ce docker-ce-cli containerd.io
 
 # Install docker-compose
-pip install docker-compose sarge python-keycloak requests --user
-
-Configure user environment
+pip install docker-compose sarge python-keycloak requests certauth --user
 source metis.env
-
 cd assets/admin-plane
 docker-compose up -d registry
 cd -
@@ -48,6 +45,8 @@ helm repo update
 
 # start minikube with Project Calico CNI
 minikube start --network-plugin=cni --cni=calico --kubernetes-version=v${KUBE_VERSION} --driver=none --insecure-registry=${PRIVATE_IP}:5000
+
+kubectl set env daemonset/calico-node -n kube-system IP_AUTODETECTION_METHOD=interface=${PRIVATE_IF}
 
 # Run minikube tunnel to enable Kubernetes LoadBalancer
 nohup minikube tunnel > /dev/null&
