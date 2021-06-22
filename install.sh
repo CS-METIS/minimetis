@@ -1,6 +1,3 @@
-cd assets/admin-plane
-docker-compose up -d registry
-cd -
 # Install and configure minikube
 ## minikube
 curl -Lo minikube https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
@@ -12,10 +9,9 @@ chmod +x kubectl
 sudo mv kubectl /usr/local/bin
 
 ## crictl
-VERSION="v1.21.0"
-wget https://github.com/kubernetes-sigs/cri-tools/releases/download/$VERSION/crictl-$VERSION-linux-amd64.tar.gz
-sudo tar zxvf crictl-$VERSION-linux-amd64.tar.gz -C /usr/local/bin
-rm -f crictl-$VERSION-linux-amd64.tar.gz
+wget https://github.com/kubernetes-sigs/cri-tools/releases/download/v${CRICTL_VERSION}/crictl-v${CRICTL_VERSION}-linux-amd64.tar.gz
+sudo tar zxvf crictl-v${CRICTL_VERSION}-linux-amd64.tar.gz -C /usr/local/bin
+rm -f crictl-v${CRICTL_VERSION}-linux-amd64.tar.gz
 
 ## helm
 curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3
@@ -28,6 +24,17 @@ helm repo add bitnami https://charts.bitnami.com/bitnami
 helm repo update
 
 # start minikube with Project Calico CNI
+cat <<EOF >> tmp.json
+{ 
+    "insecure-registries": [
+        "${PRIVATE_IP}:5000"
+        ] 
+}
+EOF
+sudo mv tmp.json /etc/docker/daemon.json
+rm -f tmp.json
+sudo systemctl restart docker
+cat /etc/docker/daemon.json
 minikube start --network-plugin=cni --cni=calico --kubernetes-version=v${KUBE_VERSION} --driver=none --insecure-registry=${PRIVATE_IP}:5000
 
 kubectl set env daemonset/calico-node -n kube-system IP_AUTODETECTION_METHOD=interface=${PRIVATE_IF}
@@ -39,6 +46,6 @@ nohup minikube tunnel > /dev/null&
 sudo PRIVATE_IP=${PRIVATE_IP} DOMAIN=${DOMAIN} sh -c 'echo "${PRIVATE_IP} ${DOMAIN}" >> /etc/hosts'
 sudo PRIVATE_IP=${PRIVATE_IP} DOMAIN=${DOMAIN} sh -c 'echo "${PRIVATE_IP} portainer.${DOMAIN}" >> /etc/hosts'
 
-python3 cli/install_admin_plane.py
+python cli/install_admin_plane.py
 
 

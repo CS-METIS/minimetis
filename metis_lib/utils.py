@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 from typing import Optional, Type, TypeVar
-from distutils.util import strtobool 
+from distutils.util import strtobool
 from metis_lib import docker
 
 

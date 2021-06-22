@@ -1,2 +1,2 @@
-app import --uri file:///home/safescale/METIS/assets/mining_plane/scdf/rabbitmq-docker-latest
+app import --uri file:///home/safescale/minimetis/assets/mining_plane/scdf/rabbitmq-docker-latest
 app import --uri https://dataflow.spring.io/task-docker-latest

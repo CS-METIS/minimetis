@@ -18,3 +18,8 @@ def substitute(template_url: str, **kwargs) -> str:
     with open(template_url) as tpl:
         content = tpl.read()
         return string.Template(content).substitute(kwargs)
+
+
+def substitute_and_save(template_url: str, destination_file: str, **kwargs) -> str:
+    with open(destination_file, 'w') as f:
+        f.write(substitute(template_url, **kwargs))

@@ -94,7 +94,9 @@ def install_scdf(domain: str, namespace: str, kong: Kong, keycloak: Keycloak):
     # import scdf built-in applications
     scdf_address = get_external_address()
     scdf_cli_jar = f"{assets}/spring-cloud-dataflow-shell-2.7.1.jar"
+    scdf_cmd_tpl_file = f"{assets}/import.tpl.txt"
     scdf_cmd_file = f"{assets}/import.txt"
+    templates.substitute_and_save(scdf_cmd_tpl_file, scdf_cmd_file, metis_home=os.getenv("METIS_HOME"))
     sh.run(
         f"java -jar {scdf_cli_jar} \
             --dataflow.uri=http://{scdf_address} \
@@ -187,10 +189,12 @@ def install_studio(
 
     # deploy studio
     assets = asset_path("mining_plane", "studio")
+    private_ip = os.environ.get("PRIVATE_IP")
+    tag = f"{private_ip}:5000/studio:0.2"
     kubernetes.apply(
         f"{assets}/metis-studio.yml",
         namespace=namespace,
-        image_tag="metis/studio:0.2",
+        image_tag=tag,
         username=namespace,
         firstname=firstname,
         lastname=lastname,
@@ -269,10 +273,12 @@ def install_ui(
 
     # deploy studio
     assets = asset_path("mining_plane", "ui")
+    private_ip = os.environ.get("PRIVATE_IP")
+    tag = f"{private_ip}:5000/studio:0.2"
     kubernetes.apply(
         f"{assets}/metis-mining-ui.yml",
         namespace=namespace,
-        image_tag="metis/miningui:0.2",
+        image_tag=tag,
         username=namespace,
         domain=domain,
     )

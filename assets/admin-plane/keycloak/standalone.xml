@@ -44,7 +44,7 @@
                 <server-identities>
                     <ssl>
                         <!-- <keystore path="application.keystore" relative-to="jboss.server.config.dir" keystore-password="password" alias="server" key-password="password" generate-self-signed-certificate-host="localhost"/> -->
-                        <keystore path="keystores/kc.pkcs12" relative-to="jboss.server.config.dir" alias="${env.DOMAIN:minimetis.dev}" keystore-password="${env.KEYCLOAK_PASSWORD:metis@admin01}" />
+                        <keystore path="keystores/kc.pkcs12" relative-to="jboss.server.config.dir" alias="${env.DOMAIN:minimetis.dev}" keystore-password="${env.KEYCLOAK_PASSWORD:admin@metis01}" />
                     </ssl>
                 </server-identities>
                 <authentication>

@@ -22,3 +22,11 @@ def get_container_ip(container: str) -> str:
     for network in networks:
         return networks[network]["IPAddress"]
     raise ValueError(f"container {container} ip not found")
+
+
+def push(image_tag: str):
+    sh.run(f"docker push {image_tag}")
+
+
+def pull(image_tag: str):
+    sh.run(f"docker pull {image_tag}")

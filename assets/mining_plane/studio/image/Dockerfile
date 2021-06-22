@@ -4,8 +4,8 @@ FROM ubuntu:20.04
 RUN apt update -y && apt upgrade -y
 
 ENV DEBIAN_FRONTEND=noninteractive 
-RUN  apt update -y && apt install -y --no-install-recommends curl git sudo build-essential \
-  lldb python gnupg libnss3 locales fuse libfuse2 s3fs \
+RUN  apt update -y && apt install -y --no-install-recommends curl git sudo build-essential unzip \
+  lldb python gnupg libnss3 locales fuse libfuse2 s3fs default-jre maven \
   apt-transport-https ca-certificates software-properties-common \
   && apt clean -y
 
@@ -45,22 +45,35 @@ RUN echo 'conda activate base' >> ~/.bashrc
 
 ENV PATH /usr/local/devtools/bin:${PATH}
 
+RUN curl -fsSL  https://github.com/GoogleContainerTools/jib/releases/download/v0.6.0-cli/jib-jre-0.6.0.zip -o jib-jre-0.6.0.zip
+RUN unzip jib-jre-0.6.0.zip
+RUN cp -r jib-0.6.0/lib /usr/local/devtools/
+RUN cp -r jib-0.6.0/bin/* /usr/local/devtools/bin/
+RUN rm -rf jib-jre-0.6.0.zip jib-0.6.0
+
 # RUN conda install pip -y
 # # Install JupyterLab
 RUN conda install -c conda-forge -y jupyterlab numpy pandas geopy nodejs yarn nbdime nbresuse jupyterlab-git jupyter-resource-usage ipykernel ipyvuetify voila
 
-RUN git clone https://github.com/cytoscape/ipycytoscape.git
-RUN pip install ./ipycytoscape
+# RUN git clone https://github.com/cytoscape/ipycytoscape.git
+# RUN pip install ./ipycytoscape
+RUN pip install ipycytoscape
+# RUN git clone https://github.com/jupyter-widgets/ipyleaflet.git
+# RUN pip install ./ipyleaflet
+RUN pip install ipyleaflet
 
-RUN git clone https://github.com/jupyter-widgets/ipyleaflet.git
-RUN pip install ./ipyleaflet
+RUN git clone https://github.com/CS-METIS/metis-voila.git
+RUN pip install ./metis-voila
 
 ADD jupyter_notebook_config.py /usr/local/devtools/etc/jupyter/jupyter_notebook_config.py
 
 RUN jupyter lab build
 
 # Install code-server extensions
+# Python
 RUN code-server --install-extension  ms-python.python
+# git graph
+RUN code-server --install-extension  mhutchie.git-graph
 # ## Markdown
 RUN code-server --install-extension yzhang.markdown-all-in-one
 ## JSon
@@ -69,6 +82,9 @@ RUN code-server --install-extension nickdemayo.vscode-json-editor
 RUN code-server --install-extension bungcip.better-toml
 ## yaml
 RUN code-server --install-extension redhat.vscode-yaml
+## Java
+RUN code-server --install-extension vscjava.vscode-java-pack
+RUN code-server --install-extension Pivotal.vscode-boot-dev-pack
 
 # ADD settings.json /home/eopfdev/.local/share/code-server/User
 
