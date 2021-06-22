@@ -1,19 +1,3 @@
-sudo apt update -y
-sudo apt upgrade -y
-sudo apt install -y build-essential apt-transport-https ca-certificates \
-    lsb-release gnupg make wget curl unzip vim git python3 python3-pip docker-compose conntrack
-
-# Install  docker
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-echo \
-  "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
-  $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-sudo apt-get update
-sudo apt-get install -y docker-ce docker-ce-cli containerd.io
-
-# Install docker-compose
-pip install docker-compose sarge python-keycloak requests certauth --user
-source metis.env
 cd assets/admin-plane
 docker-compose up -d registry
 cd -
@@ -51,7 +35,12 @@ kubectl set env daemonset/calico-node -n kube-system IP_AUTODETECTION_METHOD=int
 # Run minikube tunnel to enable Kubernetes LoadBalancer
 nohup minikube tunnel > /dev/null&
 
+# configure DNS
+sudo PRIVATE_IP=${PRIVATE_IP} DOMAIN=${DOMAIN} sh -c 'echo "${PRIVATE_IP} ${DOMAIN}" >> /etc/hosts'
+sudo PRIVATE_IP=${PRIVATE_IP} DOMAIN=${DOMAIN} sh -c 'echo "${PRIVATE_IP} portainer.${DOMAIN}" >> /etc/hosts'
+
 cd cli
 python3 install_admin_plane.py
 cd -
+
 
