@@ -10,6 +10,7 @@ echo \
   $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 sudo apt-get update
 sudo apt-get install -y docker-ce docker-ce-cli containerd.io
+sleep 5
 sudo systemctl restart docker
 # Install docker-compose
 pip install docker-compose sarge python-keycloak requests certauth --user

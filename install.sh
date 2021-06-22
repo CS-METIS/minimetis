@@ -39,8 +39,6 @@ nohup minikube tunnel > /dev/null&
 sudo PRIVATE_IP=${PRIVATE_IP} DOMAIN=${DOMAIN} sh -c 'echo "${PRIVATE_IP} ${DOMAIN}" >> /etc/hosts'
 sudo PRIVATE_IP=${PRIVATE_IP} DOMAIN=${DOMAIN} sh -c 'echo "${PRIVATE_IP} portainer.${DOMAIN}" >> /etc/hosts'
 
-cd cli
-python3 install_admin_plane.py
-cd -
+python3 cli/install_admin_plane.py
 
 
