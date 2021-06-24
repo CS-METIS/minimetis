@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Dict, Optional
 from metis_lib.sh import run
 
 
@@ -13,8 +13,10 @@ def update_repo():
 def install(
     release: str,
     chart: str,
+    version: str,
     namespace: Optional[str] = None,
     values: Optional[str] = None,
+    set_options: Optional[Dict[str, str]] = None
 ) -> str:
     namespace_opt = ""
     if namespace:
@@ -22,4 +24,7 @@ def install(
     values_opt = ""
     if values:
         values_opt = f" -f {values}"
-    return run(f"helm install {release}{namespace_opt}{values_opt} {chart}")
+    set_opts = ""
+    if set_options:
+        set_opts = f' {" ".join([f"--set {k}={v}" for k, v in set_options.items()])}'
+    return run(f"helm install {release}{namespace_opt}{values_opt} {chart} --version {version}{set_opts}")

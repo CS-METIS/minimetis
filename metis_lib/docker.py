@@ -9,7 +9,7 @@ def build_image(dockerfile: str, tag: str, contextdir: Optional[str] = None):
     if not p.is_file():
         raise ValueError(f"{p} is not a file")
     if contextdir is None:
-        contextdir = p.parent
+        contextdir = str(p.parent)
     sh.run(
         f"docker build {contextdir} -t {tag} -f {dockerfile}"
     )

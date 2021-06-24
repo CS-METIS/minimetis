@@ -123,14 +123,18 @@ def deploy():
     gitlab.wait_ready(timeout=10 * 60)
     compose.exec("gitlab", "update-ca-certificates")
 
-  
-
-    tag = f"{private_ip}:5000/studio:0.2"
+    tag = f"{private_ip}:5000/metis/studio:0.2"
     studio_assets = utils.asset_path("mining_plane", "studio")
     docker.build_image(f"{studio_assets}/image/Dockerfile", tag)
     docker.push(tag)
 
-    tag = f"{private_ip}:5000/miningui:0.2"
-    studio_assets = utils.asset_path("mining_plane", "ui")
-    docker.build_image(f"{studio_assets}/image/Dockerfile", tag)
+    tag = f"{private_ip}:5000/metis/miningui:0.2"
+    ui_assets = utils.asset_path("mining_plane", "ui")
+    docker.build_image(f"{ui_assets}/image/Dockerfile", tag)
     docker.push(tag)
+
+    scdf_assets = utils.asset_path("mining_plane", "scdf")
+    tag = "springcloudstream/image-recognition-processor-kafka:patched"
+    docker.build_image(f"{scdf_assets}/scdf_app_patched_images/image-recognition/Dockerfile", tag)
+    tag = "springcloudstream/object-detection-processor-kafka:patched"
+    docker.build_image(f"{scdf_assets}/scdf_app_patched_images/object-detection/Dockerfile", tag)

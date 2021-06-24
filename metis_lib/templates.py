@@ -21,5 +21,5 @@ def substitute(template_url: str, **kwargs) -> str:
 
 
 def substitute_and_save(template_url: str, destination_file: str, **kwargs) -> str:
-    with open(destination_file, 'w') as f:
+    with open(destination_file, "w") as f:
         f.write(substitute(template_url, **kwargs))

@@ -19,9 +19,9 @@ domain = os.environ.get("DOMAIN", "minimetis.dev")
 
 class PKI:
     def __init__(self) -> None:
-        self.ca = CertificateAuthority(ca_name="CA", ca_file_cache="/tmp/cert.pem")
+        self.ca = CertificateAuthority(ca_name="CA Minimetis", ca_file_cache="/tmp/cert.pem")
 
-    def create_ca_cert(self, output_dir: str = "pki", ca_name: str = "CA"):
+    def create_ca_cert(self, output_dir: str = "pki", ca_name: str = "CA Root Minimetis"):
         p = Path(output_dir)
         if not p.exists():
             p.mkdir()

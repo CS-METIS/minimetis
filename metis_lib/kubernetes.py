@@ -1,6 +1,5 @@
 import string
 import json
-import yaml
 from typing import List, Optional
 from metis_lib.sh import run, call
 from metis_lib import templates

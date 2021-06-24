@@ -1,4 +1,3 @@
-import time
 import os
 from typing import Optional
 
@@ -14,6 +13,7 @@ from metis_lib.utils import (
     admin_service_internal_url,
     asset_path,
 )
+from metis_lib import passwords
 
 
 def create_client(keycloak: Keycloak, username: str, domain: str, application: Optional[str] = None):
@@ -23,7 +23,11 @@ def create_client(keycloak: Keycloak, username: str, domain: str, application: O
         app_domain = f"{application}-"
     url = f"https://{app_domain}{username}.{domain}"
     keycloak.create_client(
-        "metis", client_name, root_url=url, redirected_uri="/*", base_url="/*",
+        "metis",
+        client_name,
+        root_url=url,
+        redirected_uri="/*",
+        base_url="/*",
     )
     # client_id = keycloak.get_client_id("metis", client_name)client_secret = keycloak.get_client_secret("metis", client_name)
     keycloak.create_client_role("metis", client_name, "user")
@@ -60,12 +64,18 @@ def create_route(
     )
 
 
-def create_namespace(username: str,):
+def create_namespace(
+    username: str,
+):
     kubernetes.create_namespace(username)
 
 
 def secure_namespace(
-    username: str, cpu_limit: int = 16, memory_limit: str = "64Gi", gpu_limit: int = 0, storage_limit: str = "200Gi",
+    username: str,
+    cpu_limit: int = 16,
+    memory_limit: str = "64Gi",
+    gpu_limit: int = 0,
+    storage_limit: str = "200Gi",
 ):
     kubernetes.apply(templates.get("network_policy"), username)
     kubernetes.apply(
@@ -82,8 +92,20 @@ def install_scdf(domain: str, namespace: str, kong: Kong, keycloak: Keycloak):
     client_name, client_secret = create_client(keycloak=keycloak, domain=domain, username=namespace, application="scdf")
     # deploy SCDF
     assets = asset_path("mining_plane", "scdf")
+    # helm.install(
+    #     release="scdf",
+    #     chart="bitnami/mariadb",
+    #     version="2.11.2",
+    #     namespace=namespace,
+    #     values=f"{assets}/values.yml",
+    # )
+
     helm.install(
-        release="scdf", chart="bitnami/spring-cloud-dataflow", namespace=namespace, values=f"{assets}/values.yml",
+        release="scdf",
+        chart="bitnami/spring-cloud-dataflow",
+        version="2.11.2",
+        namespace=namespace,
+        values=f"{assets}/values.yml",
     )
     kubernetes.wait_pod_ready("app.kubernetes.io/component=server", namespace, timeout=10 * 60)
 
@@ -93,7 +115,7 @@ def install_scdf(domain: str, namespace: str, kong: Kong, keycloak: Keycloak):
 
     # import scdf built-in applications
     scdf_address = get_external_address()
-    scdf_cli_jar = f"{assets}/spring-cloud-dataflow-shell-2.7.1.jar"
+    scdf_cli_jar = f"{assets}/spring-cloud-dataflow-shell-2.8.0.jar"
     scdf_cmd_tpl_file = f"{assets}/import.tpl.txt"
     scdf_cmd_file = f"{assets}/import.txt"
     templates.substitute_and_save(scdf_cmd_tpl_file, scdf_cmd_file, metis_home=os.getenv("METIS_HOME"))
@@ -121,70 +143,14 @@ def install_scdf(domain: str, namespace: str, kong: Kong, keycloak: Keycloak):
     )
 
 
-def install_hue(domain: str, namespace: str, kong: Kong, keycloak: Keycloak):
-    # create Keycloak Hue client and Kong route
-    client_id, client_secret = create_client(keycloak, namespace, domain, "hue")
-    hue_external_url = f"https://hue.{namespace}.{domain}"
-    keycloak_external_url = f"https://{domain}/keycloak/auth"
-    # deploy HUE
-    assets = asset_path("mining_plane", "hue")
-    values_tpl = f"{assets}/values.tpl.yml"
-    configured_values = templates.substitute(
-        values_tpl,
-        domain=f"hue.{namespace}.{domain}",
-        realm="metis",
-        oidc_client_id=client_id,
-        oidc_client_secret=client_secret,
-        keycloak_external_url=keycloak_external_url,
-        hue_external_url=hue_external_url,
-    )
-    with open(f"{assets}/values.yml", "w") as values:
-        values.write(configured_values)
-
-    helm.install(
-        release="hue", chart="gethue/hue --version v1.0.0", namespace=namespace, values=f"{assets}/values.yml",
-    )
-    kubernetes.wait_pod_ready("app=hue-postgres", namespace, timeout=30 * 60)
-    kubernetes.wait_pod_ready("app=hue", namespace, timeout=30 * 60)
-    # https://github.com/cloudera/hue/issues/1242
-    # https://programmersought.com/article/33542024487/
-    time.sleep(60)
-    kubernetes.exec(
-        namespace=namespace, selector="app=hue", command="/usr/share/hue/build/env/bin/hue syncdb",
-    )
-    kubernetes.exec(
-        namespace=namespace, selector="app=hue", command="/usr/share/hue/build/env/bin/hue migrate",
-    )
-
-    kubernetes.apply(
-        templates.get("loadbalancer"),
-        namespace=namespace,
-        service_name="hue-server",
-        app_name="hue",
-        port=8888,
-        target_port=8888,
-    )
-
-    @retry(stop=stop_after_delay(60), wait=wait_fixed(2))
-    def get_hue_external_ip() -> str:
-        return kubernetes.get_service_external_ip("hue-lb", namespace)
-
-    hue_ip = get_hue_external_ip()
-
-    # create route
-    create_route(
-        kong=kong,
-        service_name=client_id,
-        target_host=hue_ip,
-        target_port=8888,
-        match_host=f"hue-{namespace}.{domain}",
-        # client_id=client_id,
-        # client_secret=client_secret,
-    )
-
-
 def install_studio(
-    domain: str, namespace: str, kong: Kong, keycloak: Keycloak, firstname: str, lastname: str, email: str,
+    domain: str,
+    namespace: str,
+    kong: Kong,
+    keycloak: Keycloak,
+    firstname: str,
+    lastname: str,
+    email: str,
 ):
 
     # deploy studio
@@ -268,7 +234,10 @@ def install_studio(
 
 
 def install_ui(
-    domain: str, namespace: str, kong: Kong, keycloak: Keycloak,
+    domain: str,
+    namespace: str,
+    kong: Kong,
+    keycloak: Keycloak,
 ):
 
     # deploy studio
@@ -329,7 +298,12 @@ def deploy(
         timeout=30,
     )
     keycloak.create_user(
-        "metis", email=email, username=username, password=password, firstname=firstname, lastname=lastname,
+        "metis",
+        email=email,
+        username=username,
+        password=password,
+        firstname=firstname,
+        lastname=lastname,
     )
 
     create_namespace(username)

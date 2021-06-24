@@ -1,6 +1,7 @@
 # minimetis
 The following procedure has been tested on Ubuntu 20.04 using bash shell
-## Installation of the METIS admin plane
+## METIS admin plane
+### Install
 - Install prerequisite
 ```bash
 $ ./install_prerequisite
@@ -15,14 +16,36 @@ $ source metis.env
 ```
 $ ./install.sh
 ```
-## Configuration of the client host
+### Configuration of the admin client host
 replace PUBLIC_IP by the IP address of the host where you install the minimetis admin plane.
-
 Replace DOMAIN by the value of the DOMAIN environment variable you set in the metis.env file.
+
 - edit /etc/hosts file on linux or C:\Windows\System32\Drivers\etc\hosts on windows to add:
 ```
-PUBLIC_IP	DOMAIN.dev
-PUBLIC_IP	portainer.DOMAIN.dev
+PUBLIC_IP	DOMAIN
 ```
 - add the root certificate ./pki/CA.pem to the trusted root certificate of the client browser
 
+## METIS admin plane
+### add a new data mining plane
+run:
+```bash
+$ python cli/add_dataminer_plane.py
+```
+### Configuration of the data miner client host
+Replace PUBLIC_IP by the IP address of the host where you install the minimetis admin plane.
+Replace DOMAIN by the value of the DOMAIN environment variable you set in the metis.env file.
+Replace USERNAME by the user name choosen when adding the mining plane.
+- edit /etc/hosts file on linux or C:\Windows\System32\Drivers\etc\hosts on windows to add:
+```
+PUBLIC_IP	DOMAIN
+PUBLIC_IP	USERNAME.DOMAIN
+PUBLIC_IP	scdf-USERNAME.DOMAIN
+PUBLIC_IP	codeserver-USERNAME.DOMAIN
+PUBLIC_IP	jupyterlab-USERNAME.DOMAIN
+PUBLIC_IP	ungit-USERNAME.DOMAIN
+PUBLIC_IP	filebrowser-USERNAME.DOMAIN
+```
+- add the root certificate ./pki/CA.pem to the trusted root certificate of the client browser
+
+Once done the new mining plane is accessible at https://USERNAME.DOMAIN

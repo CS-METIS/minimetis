@@ -23,7 +23,7 @@ gitlab_rails['omniauth_providers'] = [
       'client_options' => {
         'scheme' => 'http',
         'identifier' => 'gitlab',
-        'secret' => '73949564-e57a-4687-b6e9-0a924fa896c0',
+        'secret' => 'c9414aa8-1c2c-42be-b639-d087c88b4eba',
         'redirect_uri' => 'https://test-minimetis.dev/gitlab//users/auth/openid_connect/callback'
       }
     }
