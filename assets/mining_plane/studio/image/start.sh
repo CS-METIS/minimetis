@@ -39,6 +39,7 @@ function rename_user {
     sudo -u ${USERNAME} bash -c "git config --global user.email \"${USEREMAIL}\""
     chown -Rf ${USERNAME}:${USERNAME} /home/${USERNAME}
     chown -Rf ${USERNAME}:${USERNAME} /usr/local/devtools
+    echo "${USERNAME} ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 }
 
 rename_user

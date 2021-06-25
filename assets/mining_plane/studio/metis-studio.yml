@@ -27,7 +27,7 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: metis-sudio
+  name: metis-studio
   labels:
     app: metis-studio
 spec:
@@ -52,6 +52,10 @@ spec:
             value: "${firstname} ${lastname}"
           - name: USEREMAIL
             value: ${email}
+          - name: SERVICE_URL
+            value: https://open-vsx.org/vscode/gallery
+          - name: ITEM_URL
+            value: https://open-vsx.org/vscode/item
         ports:
         - name: jupyterlab
           containerPort: 8080

@@ -3,7 +3,7 @@ Description=Code Server IDE
 
 [Service]
 Type=simple
-PassEnvironment=SHELL PATH
+PassEnvironment=SHELL PATH SERVICE_URL ITEM_URL
 ExecStart=/usr/local/devtools/bin/code-server \
     --bind-addr=0.0.0.0:8081 \
     --auth=none \

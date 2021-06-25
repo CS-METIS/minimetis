@@ -13,7 +13,6 @@ from metis_lib.utils import (
     admin_service_internal_url,
     asset_path,
 )
-from metis_lib import passwords
 
 
 def create_client(keycloak: Keycloak, username: str, domain: str, application: Optional[str] = None):
@@ -92,13 +91,6 @@ def install_scdf(domain: str, namespace: str, kong: Kong, keycloak: Keycloak):
     client_name, client_secret = create_client(keycloak=keycloak, domain=domain, username=namespace, application="scdf")
     # deploy SCDF
     assets = asset_path("mining_plane", "scdf")
-    # helm.install(
-    #     release="scdf",
-    #     chart="bitnami/mariadb",
-    #     version="2.11.2",
-    #     namespace=namespace,
-    #     values=f"{assets}/values.yml",
-    # )
 
     helm.install(
         release="scdf",
@@ -156,7 +148,7 @@ def install_studio(
     # deploy studio
     assets = asset_path("mining_plane", "studio")
     private_ip = os.environ.get("PRIVATE_IP")
-    tag = f"{private_ip}:5000/studio:0.2"
+    tag = f"{private_ip}:5000/metis/studio:0.2"
     kubernetes.apply(
         f"{assets}/metis-studio.yml",
         namespace=namespace,
@@ -243,7 +235,7 @@ def install_ui(
     # deploy studio
     assets = asset_path("mining_plane", "ui")
     private_ip = os.environ.get("PRIVATE_IP")
-    tag = f"{private_ip}:5000/studio:0.2"
+    tag = f"{private_ip}:5000/metis/miningui:0.2"
     kubernetes.apply(
         f"{assets}/metis-mining-ui.yml",
         namespace=namespace,

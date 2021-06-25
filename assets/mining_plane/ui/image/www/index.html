@@ -87,12 +87,12 @@
         </div>
     </h6>
     <hr style="width:100%;text-align:left;margin:0">
-    <iframe id="code" src="https://codeserver-sdorgan.minimetis.dev/" class="visible"></iframe>
-    <iframe id="notebooks" src="https://jupyterlab-sdorgan.minimetis.dev/" class="hidden"></iframe>
-    <iframe id="workflows" src="https://scdf-sdorgan.minimetis.dev/dashboard/index.html" class="hidden"></iframe>
-    <iframe id="browser" src="https://filebrowser-sdorgan.minimetis.dev/" class="hidden"></iframe>
-    <iframe id="gitlab" src="https://minimetis.dev/gitlab" class="hidden"></iframe>
-    <iframe id="ungit" src="https://ungit-sdorgan.minimetis.dev/" class="hidden"></iframe>
+    <iframe id="code" src="https://codeserver-${username}.${domain}/" class="visible"></iframe>
+    <iframe id="notebooks" src="https://jupyterlab-${username}.${domain}/" class="hidden"></iframe>
+    <iframe id="workflows" src="https://scdf-${username}.${domain}/dashboard/index.html" class="hidden"></iframe>
+    <iframe id="browser" src="https://filebrowser-${username}.${domain}/" class="hidden"></iframe>
+    <iframe id="gitlab" src="https://${domain}/gitlab" class="hidden"></iframe>
+    <iframe id="ungit" src="https://ungit-${username}.${domain}/" class="hidden"></iframe>
     <script type="text/javascript">
         var elements = [["code", 1], ["notebooks", 1], ["workflows", 0], ["browser", 1], ["gitlab", 1], ["ungit", 1]]
 
@@ -132,7 +132,7 @@
             });
         }
         function open_dashboard(){
-            window.open("https://jupyterlab-sdorgan.minimetis.dev/voila/tree/dgsi/dashboards")
+            window.open("https://jupyterlab-${username}.${domain}/voila/tree/dgsi/dashboards")
         }
     </script>
     </body>
