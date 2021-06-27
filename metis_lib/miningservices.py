@@ -169,6 +169,7 @@ def install_studio(
         firstname=firstname,
         lastname=lastname,
         email=email,
+        registry_private_ip=private_ip,
         storage_class_name=namespace,
         size=storage_size,
     )

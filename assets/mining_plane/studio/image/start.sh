@@ -20,9 +20,6 @@ function rename_user {
     usermod -c "${USERFULLNAME}" ${USERNAME}
     id $1
 
-    # echo "${USERNAME}:100000:65536" > /etc/subgid
-    # echo "${USERNAME}:100000:65536" > /etc/subuid
-
     sed -i "s/USER/${USERNAME}/g" /etc/systemd/system/jupyterlab.service
     sed -i "s/USER/${USERNAME}/g" /etc/systemd/system/codeserver.service
     sed -i "s/USER/${USERNAME}/g" /etc/systemd/system/filebrowser.service

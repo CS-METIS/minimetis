@@ -5,7 +5,7 @@ RUN apt update -y && apt upgrade -y
 
 ENV DEBIAN_FRONTEND=noninteractive 
 RUN  apt update -y && apt install -y --no-install-recommends curl wget git sudo build-essential unzip \
-  lldb python gnupg libnss3 locales fuse libfuse2 s3fs default-jre maven \
+  lldb python gnupg libnss3 locales fuse libfuse2 s3fs default-jre maven iputils-ping vim \
   apt-transport-https ca-certificates software-properties-common \
   && apt clean -y
 
@@ -15,7 +15,10 @@ RUN rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 RUN sh -c "echo 'deb http://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_20.04/ /' > /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list"
 RUN wget -nv https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_20.04/Release.key -O Release.key
 RUN apt-key add - < Release.key
-RUN apt update -y && apt install -y buildah skopeo
+RUN apt update -y && apt install -y buildah skopeo && apt clean -y
+
+# Adjust storage.conf to use vfs
+RUN sed -i 's/driver = "overlay"/driver = "vfs"/g' /etc/containers/storage.conf
 
 
 # Add a user `dev` so that you're not developing as the `root` user

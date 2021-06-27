@@ -134,3 +134,4 @@ dmypy.json
 *.key
 
 pki/
+*.pkcs12

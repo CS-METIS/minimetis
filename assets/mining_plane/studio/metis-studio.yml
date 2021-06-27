@@ -41,6 +41,10 @@ spec:
       labels:
         app: metis-studio
     spec:
+      hostAliases:
+      - ip: ${registry_private_ip}
+        hostnames:
+        - "registry"
       containers:
         - name: metis-studio
           image: ${image_tag}
