@@ -9,7 +9,7 @@ def apply(template_url: str, namespace: Optional[str] = None, **kwargs):
     if not namespace:
         namespace_opt = ""
     else:
-        namespace_opt = f"-n {namespace}"
+        namespace_opt = f" -n {namespace}"
     if template_url.startswith("http://") or template_url.startswith("https://"):
         return run(f"curl -L {template_url} | kubectl {namespace_opt} apply -f -")
 
@@ -17,7 +17,12 @@ def apply(template_url: str, namespace: Optional[str] = None, **kwargs):
         obj = tpl.read()
         if kwargs:
             obj = string.Template(obj).substitute(kwargs)
-        run(f'printf "{obj}" | kubectl apply {namespace_opt} -f -')
+        import tempfile
+        tmp = tempfile.NamedTemporaryFile(suffix=".yml", delete=False)
+        print(f"Tmp {template_url} {tmp.name}")
+        tmp.write(str.encode(obj))
+        tmp.close()
+        run(f'kubectl apply{namespace_opt} -f {tmp.name}')
 
 
 def wait_pod_ready(label: str, namespace: str = "default", timeout: int = -1) -> bool:

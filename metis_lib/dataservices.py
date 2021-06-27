@@ -1,11 +1,9 @@
-from urllib.parse import urlparse
 import os
 
 from tenacity import retry
 from tenacity.stop import stop_after_delay
 from tenacity.wait import wait_fixed
-from libcloud.storage.providers import get_driver
-from libcloud.storage.types import ContainerAlreadyExistsError
+
 from metis_lib import kubernetes
 from metis_lib import helm
 from metis_lib import utils
@@ -20,53 +18,7 @@ from metis_lib.kong import Kong
 
 def install_alluxio(namespace: str) -> str:
     asset_path = utils.asset_path("data_plane", "alluxio")
-    storage_provider = utils.get_env(str, "STORAGE_PROVIDER")
-    storage_key = utils.get_env(str, "STORAGE_ACCESS_KEY")
-    storage_secret = utils.get_env(str, "STORAGE_SECRET_KEY")
-    storage_endpoint = utils.get_env(str, "STORAGE_ENDPOINT")
-    storage_region = utils.get_env(str, "STORAGE_REGION")
-    storage_bucket = utils.get_env(str, "STORAGE_BUCKET")
-
-    enpoint_url = urlparse(storage_endpoint)
-    bucket_url = urlparse(storage_bucket)
-    bucket_name = bucket_url.netloc
-
-    StorageDriver = get_driver(storage_provider)
-
-    storage = StorageDriver(
-        key=storage_key, secret=storage_secret, host=enpoint_url.hostname, port=enpoint_url.port, region=storage_region
-    )
-    try:
-        storage.create_container(container_name=bucket_name)
-    except ContainerAlreadyExistsError:
-        print(f"bucket {storage_bucket} already exists")
-        # c = storage.get_container(container_name=bucket_name)
-        # storage.delete_container(c)
-        # storage.create_container(container_name=bucket_name)
-
-    values_tpl = f"{asset_path}/values.tpl.yml"
-    configured_values = templates.substitute(
-        values_tpl,
-        bucket=storage_bucket,
-        endpoint=storage_endpoint,
-        access_key=storage_key,
-        secret_key=storage_secret,
-        region=storage_region,
-        disable_dns=utils.get_env(bool, "STORAGE_DISABLE_DNS", False),
-        inherit_acl=utils.get_env(bool, "STORAGE_INHERIT_ACL", True),
-    )
-
-    with open(f"{asset_path}/values.yml", "w") as values:
-        values.write(configured_values)
-
-    helm.install(
-        release="alluxio", chart="alluxio-charts/alluxio", namespace=namespace, values=f"{asset_path}/values.yml"
-    )
-    kubernetes.wait_pod_ready("app=alluxio", "data-plane", 5 * 60)
-    opts = kubernetes.exec(
-        "data-plane", "role=alluxio-master", "/bin/bash -c 'echo ${ALLUXIO_JAVA_OPTS}'", container_name="alluxio-master"
-    )
-    print(opts)
+    helm.install(release="fluid", chart=f"{asset_path}/fluid-0.5.0.tgz", version="0.5.0")
 
 
 def install_hive_metastore(namespace: str, alluxio_java_options: str):
@@ -99,7 +51,12 @@ def install_trino(namespace: str):
 def install_orientdb(namespace: str, domain: str, kong: Kong):
     asset_path = utils.asset_path("data_plane", "orientdb")
     helm.install(
-        release="orientdb", chart=f"{asset_path}/chart", namespace=namespace, values=f"{asset_path}/chart/values.yaml",
+        release="orientdb",
+        chart=f"{asset_path}/orientdb-helm",
+        version="0.1.0",
+        namespace=namespace,
+        values=f"{asset_path}/values.yml",
+        set_options={"namespace": namespace},
     )
 
     @retry(stop=stop_after_delay(3 * 60), wait=wait_fixed(2))
@@ -124,37 +81,15 @@ def install(namespace: str):
 
     domain = os.environ.get("DOMAIN")
     install_orientdb(namespace=namespace, domain=domain, kong=kong)
-    # # metis_admin_password = os.environ.get("METIS_ADMIN_PASSWORD", "metis@admin01")
-    # # keycloak = Keycloak(
-    # #     url=f"{admin_service_internal_url('keycloak', 8080)}/auth/admin",
-    # #     username="admin",
-    # #     password=metis_admin_password,
-    # #     timeout=30,
-    # # )
-    # # keycloak.create_user(
-    # #     "metis", email=email, username=username, password=password, firstname=firstname, lastname=lastname,
-    # # )
+    # asset_path = utils.asset_path("data_plane", "shared_volume")
 
-    # kubernetes.create_namespace(namespace)
-    # install_alluxio(namespace)
-    # install_hive_metastore(namespace)
-
-    # # install_trino(namespace)
-
-    # # kubernetes.wait_pod_ready("app=trino", namespace, timeout=10 * 60)
-
-    # # @retry(stop=stop_after_delay(60), wait=wait_fixed(2))
-    # # def get_external_ip() -> str:
-    # #     return kubernetes.get_service_external_ip("trino", namespace)
-
-    # # trino_host = get_external_ip()
-
-    # # # kong.create_service("TrinoUI", host=trino_host, port=8080, path="trino", strip_path=True, protocol="http")
-    # # kong.create_service_subdomain(
-    # #     name="trino-ui",
-    # #     target_host=trino_host,
-    # #     target_port=8080,
-    # #     target_protocol="http",
-    # #     match_host=f"trinoui.{domain}",
-    # #     match_path=None,
-    # # )
+    # shared_storage_size = int(os.getenv("SHARED_STORAGE_SIZE"))
+    # # shared_storage_class = os.getenv("SHARED_STORAGE_CLASS")
+    # if shared_storage_size > 0:
+    #     templates.substitute_and_save(
+    #         template_url=f"{asset_path}/pv.tpl.yml",
+    #         destination_file=f"{asset_path}/pv.yml",
+    #         size=shared_storage_size,
+    #         # storage_class=shared_storage_class,
+    #     )
+    #     kubernetes.apply(f"{asset_path}/pv.yml")

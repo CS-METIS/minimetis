@@ -27,6 +27,8 @@ function rename_user {
     sed -i "s/USER/${USERNAME}/g" /etc/systemd/system/codeserver.service
     sed -i "s/USER/${USERNAME}/g" /etc/systemd/system/filebrowser.service
     sed -i "s/USER/${USERNAME}/g" /etc/systemd/system/gitwebui.service
+    sed -i "s/eopfdev/${USERNAME}/g" /etc/subuid
+    sed -i "s/eopfdev/${USERNAME}/g" /etc/subgid
 
     echo "export USER=${USERNAME}" > /home/${USERNAME}/.local/user_env.sh
     echo "export USERFULLNAME=${USERFULLNAME}" >> /home/${USERNAME}/.local/user_env.sh
@@ -40,6 +42,10 @@ function rename_user {
     chown -Rf ${USERNAME}:${USERNAME} /home/${USERNAME}
     chown -Rf ${USERNAME}:${USERNAME} /usr/local/devtools
     echo "${USERNAME} ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+    if [ -d "/shared" ]; then
+        chown -R ${USERNAME}:${USERNAME} /shared
+    fi
+
 }
 
 rename_user

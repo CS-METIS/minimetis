@@ -1,0 +1,205 @@
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: {{ .Values.namespace }}
+  name: {{ .Values.serviceName }}
+  labels:
+    {{- include "orientdb-helm.labels" . | nindent 4 }}
+spec:
+  ports:
+  - port: {{ .Values.binaryPort }}
+    name: binary
+  {{- if .Values.ssl.enable }}
+  - port: {{ .Values.httpsPort }}
+    name: https
+  - port: {{ .Values.binarySslPort }}
+    name: binary-ssl
+  {{- else }}
+  - port: {{ .Values.httpPort }}
+    name: http
+  {{- end }}
+  - port: {{ .Values.hazelcast.network.port }}
+    name: hazelcast
+  clusterIP: None
+  selector:
+    {{- include "orientdb-helm.selectorLabels" . | nindent 4 }}
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  namespace: {{ .Values.namespace }}
+  name: {{ .Values.statefulSetName }}
+  labels:
+    {{- include "orientdb-helm.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "orientdb-helm.selectorLabels" . | nindent 6 }}
+  replicas: {{ .Values.servers }}
+  serviceName: {{ .Values.serviceName }}
+  template:
+    metadata:
+      labels:
+        {{- include "orientdb-helm.selectorLabels" . | nindent 8 }}
+        {{ .Values.hazelcast.discovery.podLabel.name }}: {{ .Values.hazelcast.discovery.podLabel.value | quote }}
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . |  nindent 8 }}
+      {{- end}}
+    spec:
+      serviceAccountName: {{ .Values.serviceAccount.name }}
+      terminationGracePeriodSeconds: 30
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+      - name: orientdb
+        command: ["dserver.sh"]
+        image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        {{- with .Values.environmentVariables }}
+        env:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        securityContext:
+          {{- toYaml .Values.securityContext | nindent 10 }}
+        ports:
+        - containerPort: {{ .Values.binaryPort }}
+          protocol: TCP
+        {{- if .Values.ssl.enable }}
+        - containerPort: {{ .Values.httpsPort }}
+          protocol: TCP
+        - containerPort: {{ .Values.binarySslPort }}
+          protocol: TCP
+        {{- else }}
+        - containerPort: {{ .Values.httpPort }}
+          protocol: TCP
+        {{- end }}
+        - containerPort: {{ .Values.hazelcast.network.port }}
+          protocol: TCP
+        livenessProbe:
+          tcpSocket:
+            port: {{ .Values.binaryPort }}
+          initialDelaySeconds: 15
+          periodSeconds: 20
+          failureThreshold: 5
+        readinessProbe:
+          tcpSocket:
+            port: {{ .Values.binaryPort }}
+          initialDelaySeconds: 10
+          periodSeconds: 20
+          failureThreshold: 5
+        {{- with .Values.resources }}
+        resources:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        volumeMounts:
+        - name: databases
+          mountPath: /orientdb/databases
+        - name: config
+          mountPath: /orientdb/config
+        {{- if .Values.volumeClaims.backup.mount }}
+        - name: backup
+          mountPath: /orientdb/backup
+        {{- end }}
+        {{- if .Values.ssl.enable }}
+        - name: orientdb-ssl-secret-vol
+          mountPath: /orientdb/cert
+        {{- end }}
+      # OrientDB needs the config files (at least server config) to be modifiable. Mounting directly from the configMap
+      # would result in a read-only config folder which can crash the server.
+      initContainers:
+      - name: copy-configs
+        image: busybox:1.31
+        command: ['sh', '-c']
+        args:
+        - cp -v /orientdb-config/* /orientdb/config/
+        volumeMounts:
+        - name: config
+          mountPath: /orientdb/config
+        - name: orientdb-config-cm-vol
+          mountPath: /orientdb-config
+      volumes:
+      - name: orientdb-config-cm-vol
+        configMap:
+          name: {{ .Values.orientdbConfigMapName }}
+      {{- if .Values.ssl.enable }}
+      - name: orientdb-ssl-secret-vol
+        secret:
+          secretName: {{ .Values.ssl.secretName }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.tryAvoidingColocation }}
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - {{ .Values.labelValue }}
+                topologyKey: "kubernetes.io/hostname"
+      {{- else }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- end }}
+  volumeClaimTemplates:
+  - metadata:
+      name: databases
+      labels:
+        {{- include "orientdb-helm.labels" . | nindent 8 }}
+      {{- with .Values.volumeClaims.annotations }}
+      annotations:
+        {{- toYaml . |  nindent 8 }}
+      {{- end}}
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      storageClassName: {{ .Values.volumeClaims.databases.storageClass }}
+      resources:
+        requests:
+          storage: {{ .Values.volumeClaims.databases.size }}
+  - metadata:
+      name: config
+      labels:
+        {{- include "orientdb-helm.labels" . | nindent 8 }}
+      {{- with .Values.volumeClaims.annotations }}
+      annotations:
+        {{- toYaml . |  nindent 8 }}
+      {{- end}}
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      storageClassName: {{ .Values.volumeClaims.config.storageClass }}
+      resources:
+        requests:
+          storage: {{ .Values.volumeClaims.config.size }}
+  {{- if .Values.volumeClaims.backup.mount }}
+  - metadata:
+      name: backup
+      labels:
+        {{- include "orientdb-helm.labels" . | nindent 8 }}
+      {{- with .Values.volumeClaims.annotations }}
+      annotations:
+        {{- toYaml . |  nindent 8 }}
+      {{- end}}
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      storageClassName: {{ .Values.volumeClaims.backup.storageClass }}
+      resources:
+        requests:
+          storage: {{ .Values.volumeClaims.backup.size }}
+  {{- end }}

@@ -1049,7 +1049,7 @@ externalDatabase:
 ## https://github.com/bitnami/charts/blob/master/bitnami/rabbitmq/values.yaml
 ##
 rabbitmq:
-  enabled: true
+  enabled: false
   auth:
     username: user
 
@@ -1079,7 +1079,7 @@ externalRabbitmq:
 ## https://github.com/bitnami/charts/blob/master/bitnami/kafka/values.yaml
 ##
 kafka:
-  enabled: false
+  enabled: true
   replicaCount: 1
   offsetsTopicReplicationFactor: 1
   ##

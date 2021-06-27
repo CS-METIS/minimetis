@@ -25,7 +25,7 @@ spec:
       targetPort: 8083
 ---
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: metis-studio
   labels:
@@ -35,37 +35,53 @@ spec:
   selector:
     matchLabels:
       app: metis-studio
+  serviceName: metis-studio-service
   template:
     metadata:
       labels:
         app: metis-studio
     spec:
       containers:
-      - name: metis-studio
-        image: ${image_tag}
-        securityContext:
-          privileged: true
-        env:
-          - name: USERNAME
-            value: ${username}
-          - name: USERFULLNAME
-            value: "${firstname} ${lastname}"
-          - name: USEREMAIL
-            value: ${email}
-          - name: SERVICE_URL
-            value: https://open-vsx.org/vscode/gallery
-          - name: ITEM_URL
-            value: https://open-vsx.org/vscode/item
-        ports:
-        - name: jupyterlab
-          containerPort: 8080
-        - name: codeserver
-          containerPort: 8081
-        - name: filebrowser
-          containerPort: 8888
-        - name: ungit 
-          containerPort: 9000
+        - name: metis-studio
+          image: ${image_tag}
+          volumeMounts:
+          - mountPath: "/shared"
+            name: shared-data
+          securityContext:
+            privileged: true
+          env:
+            - name: USERNAME
+              value: ${username}
+            - name: USERFULLNAME
+              value: "${firstname} ${lastname}"
+            - name: USEREMAIL
+              value: ${email}
+            - name: SERVICE_URL
+              value: https://open-vsx.org/vscode/gallery
+            - name: ITEM_URL
+              value: https://open-vsx.org/vscode/item
+          ports:
+            - name: jupyterlab
+              containerPort: 8080
+            - name: codeserver
+              containerPort: 8081
+            - name: filebrowser
+              containerPort: 8888
+            - name: ungit 
+              containerPort: 9000
+          resources:
+            limits:
+              cpu: 16
+              memory: 64Gi
+            requests:
+              cpu: 2
+              memory: 4Gi
+  volumeClaimTemplates:
+    - metadata:
+        name: shared-data
+      spec:
+        accessModes: [ "ReadWriteMany" ]
+        storageClassName: ${storage_class_name}
         resources:
-          limits:
-            cpu: "4"
-            memory: 6Gi
+          requests:
+            storage: ${size}Gi

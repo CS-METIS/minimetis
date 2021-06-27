@@ -1,0 +1,33 @@
+{{- if .Values.service.create -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.serviceName }}-service
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "orientdb-helm.labels" . | nindent 4 }}
+  {{- with .Values.service.annotations }}
+  annotations:
+    {{- toYaml . |  nindent 4 }}
+  {{- end}}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+  - name: binary
+    port: {{ .Values.binaryPort }}
+    nodePort: {{ .Values.binaryNodePort }}
+  {{- if .Values.ssl.enable }}
+  - name: binary-ssl
+    port: {{ .Values.binarySslPort }}
+    nodePort: {{ .Values.binarySslNodePort }}
+  - name: https
+    port: {{ .Values.httpsPort }}
+    nodePort: {{ .Values.httpsNodePort }}
+  {{- else }}
+  - name: http
+    port: {{ .Values.httpPort }}
+    nodePort: {{ .Values.httpNodePort }}
+  {{- end }}
+  selector:
+    {{- include "orientdb-helm.selectorLabels" . | nindent 4 }}
+{{- end -}}

@@ -147,8 +147,20 @@ def install_studio(
 
     # deploy studio
     assets = asset_path("mining_plane", "studio")
+    storage_size = int(os.getenv("SHARED_STORAGE_SIZE"))
+    # kubernetes.apply(
+    #     f"{assets}/pvc.yml",
+    #     namespace=namespace,
+    #     size=storage_size
+    # )
     private_ip = os.environ.get("PRIVATE_IP")
     tag = f"{private_ip}:5000/metis/studio:0.2"
+    kubernetes.apply(
+        template_url=f"{assets}/pv.yml",
+        namespace=None,
+        storage_class_name=namespace,
+        size=storage_size
+    )
     kubernetes.apply(
         f"{assets}/metis-studio.yml",
         namespace=namespace,
@@ -157,6 +169,8 @@ def install_studio(
         firstname=firstname,
         lastname=lastname,
         email=email,
+        storage_class_name=namespace,
+        size=storage_size,
     )
 
     kubernetes.wait_pod_ready("app=metis-studio", namespace, timeout=10 * 60)
@@ -287,7 +301,7 @@ def deploy(
         url=f"{admin_service_internal_url('keycloak', 8080)}/auth/admin",
         username="admin",
         password=metis_admin_password,
-        timeout=30,
+        timeout=120,
     )
     keycloak.create_user(
         "metis",
