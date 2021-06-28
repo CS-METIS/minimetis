@@ -5,7 +5,7 @@ RUN apt update -y && apt upgrade -y
 
 ENV DEBIAN_FRONTEND=noninteractive 
 RUN  apt update -y && apt install -y --no-install-recommends curl wget git sudo build-essential unzip \
-  lldb python gnupg libnss3 locales fuse libfuse2 s3fs default-jre maven iputils-ping vim \
+  lldb python gnupg libnss3 locales fuse libfuse2 s3fs default-jdk maven iputils-ping vim \
   apt-transport-https ca-certificates software-properties-common \
   && apt clean -y
 
@@ -18,8 +18,9 @@ RUN apt-key add - < Release.key
 RUN apt update -y && apt install -y buildah skopeo && apt clean -y
 
 # Adjust storage.conf to use vfs
-RUN sed -i 's/driver = "overlay"/driver = "vfs"/g' /etc/containers/storage.conf
-
+# RUN sed -i 's/driver = "overlay"/driver = "vfs"/g' /etc/containers/storage.conf
+COPY storage.conf /etc/containers/storage.conf
+COPY registries.conf /etc/containers/registries.conf
 
 # Add a user `dev` so that you're not developing as the `root` user
 # The user needs to sudoer be able to install code-server
@@ -37,6 +38,9 @@ RUN rm -f Miniconda3-latest-Linux-x86_64.sh
 RUN curl -fsSL https://code-server.dev/install.sh > install.sh
 RUN sh install.sh --method=standalone --prefix=/usr/local/devtools --version=3.10.0
 RUN rm -f install.sh
+
+COPY scdf-shell /usr/local/devtools/bin/scdf-shell
+RUN chmod a+x /usr/local/devtools/bin/scdf-shell
 
 RUN chown -R eopfdev:eopfdev /usr/local/devtools
 
@@ -59,9 +63,11 @@ RUN cp -r jib-0.6.0/lib /usr/local/devtools/
 RUN cp -r jib-0.6.0/bin/* /usr/local/devtools/bin/
 RUN rm -rf jib-jre-0.6.0.zip jib-0.6.0
 
+RUN curl -L https://repo.spring.io/snapshot/org/springframework/cloud/spring-cloud-dataflow-shell/2.8.0-SNAPSHOT/spring-cloud-dataflow-shell-2.8.0-20210612.072342-389.jar -o /usr/local/devtools/lib/spring-cloud-dataflow-shell-2.8.0.jar
+
 # RUN conda install pip -y
 # # Install JupyterLab
-RUN conda install -c conda-forge -y jupyterlab numpy pandas geopy nodejs yarn nbdime nbresuse jupyterlab-git jupyter-resource-usage ipykernel ipyvuetify voila
+RUN conda install -c conda-forge -y jupyterlab numpy pandas geopy nodejs yarn nbdime nbresuse jupyterlab-git jupyter-resource-usage ipykernel ipyvuetify voila pylint flake8 mypy
 
 # RUN git clone https://github.com/cytoscape/ipycytoscape.git
 # RUN pip install ./ipycytoscape
@@ -72,7 +78,7 @@ RUN pip install ipyleaflet
 
 RUN git clone https://github.com/CS-METIS/metis-voila.git
 RUN pip install ./metis-voila
-
+RUN rm -R ./metis-voila
 ADD jupyter_notebook_config.py /usr/local/devtools/etc/jupyter/jupyter_notebook_config.py
 
 RUN jupyter lab build
@@ -107,11 +113,6 @@ USER eopfdev
 WORKDIR /home/eopfdev/.local
 RUN /usr/local/bin/filebrowser config init --baseurl /browser --auth.method=noauth --port=8888
 RUN /usr/local/bin/filebrowser users add "default-user" "default-password"
-ADD credentials /home/eopfdev/.config/credentials
-ADD rclone.conf /home/eopfdev/.config/rclone/rclone.conf
-RUN conda install pylint -y
-RUN conda install -c conda-forge rclone
-RUN conda install -c conda-forge vim
 USER root
 WORKDIR /
 RUN rm -rf /etc/systemd/system/*

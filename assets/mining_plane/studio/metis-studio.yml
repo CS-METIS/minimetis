@@ -64,6 +64,8 @@ spec:
               value: https://open-vsx.org/vscode/gallery
             - name: ITEM_URL
               value: https://open-vsx.org/vscode/item
+            - name: JAVA_HOME
+              value: /usr/lib/jvm/default-java
           ports:
             - name: jupyterlab
               containerPort: 8080
@@ -75,10 +77,10 @@ spec:
               containerPort: 9000
           resources:
             limits:
-              cpu: 16
+              cpu: "16"
               memory: 64Gi
             requests:
-              cpu: 2
+              cpu: "2"
               memory: 4Gi
   volumeClaimTemplates:
     - metadata:

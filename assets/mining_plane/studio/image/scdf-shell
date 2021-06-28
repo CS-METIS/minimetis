@@ -1,0 +1,2 @@
+#! /bin/bash
+java -jar /usr/local/devtools/lib/spring-cloud-dataflow-shell-2.8.0.jar --dataflow.uri=http://scdf-spring-cloud-dataflow-server:8080 $@

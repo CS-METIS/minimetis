@@ -7,7 +7,7 @@ The following procedure has been tested on Ubuntu 20.04 using bash shell
 $ ./install_prerequisite
 ```
 - Then edit <code>metis.env</code> file
-Most of the time, you have have to set the environment variables PRIVATE_IF and DOMAIN.
+Most of the time, you have have only to set the environment variables PRIVATE_IF, DOMAIN and SHARED_STORAGE_SIZE.
 - Export environment variables
 ```bash
 $ source metis.env
@@ -46,6 +46,6 @@ PUBLIC_IP	jupyterlab-USERNAME.DOMAIN
 PUBLIC_IP	ungit-USERNAME.DOMAIN
 PUBLIC_IP	filebrowser-USERNAME.DOMAIN
 ```
-- add the root certificate ./pki/CA.pem to the trusted root certificate of the client browser
+- add the root certificate ./pki/CA Root Minimetis.pem to the trusted root certificate of the client browser
 
-Once done the new mining plane is accessible at https://USERNAME.DOMAIN
+Once done the new mining plane is accessible after a few minutes at https://USERNAME.DOMAIN
