@@ -1,11 +1,13 @@
 import os
+import tempfile
+import yaml
 from typing import Optional
 
 from tenacity import retry
 from tenacity.stop import stop_after_delay
 from tenacity.wait import wait_fixed
 
-from metis_lib import helm, kubernetes, sh, templates
+from metis_lib import helm, kubernetes, sh, templates, utils
 from metis_lib.keycloak import Keycloak
 from metis_lib.kong import Kong
 from metis_lib.utils import (
@@ -87,6 +89,92 @@ def secure_namespace(
     )
 
 
+def install_monitoring_tools(domain: str, namespace: str, kong: Kong, keycloak: Keycloak):
+    grafana_assets = asset_path("mining_plane", "grafana")
+    prometheus_host = "prometheus-operated"
+    prometheus_port = "9090"
+    monitoring_namespace = namespace
+    kubernetes.create_namespace(monitoring_namespace)
+    helm.install(release="prometheus", chart="bitnami/kube-prometheus", version="6.0.1", namespace=monitoring_namespace)
+    for dashboard in ["scdf-applications", "scdf-streams", "scdf-task-batch", "scdf-servers", "scdf-kafka-streams"]:
+        grafana_dashboard = f"{grafana_assets}/{dashboard}.json"
+        kubernetes.create_config_map(
+            name=f"grafana-dashboards-{dashboard}",
+            from_file=grafana_dashboard,
+            key_name=f"{dashboard}.json",
+            namespace=monitoring_namespace,
+        )
+    kubernetes.create_config_map(
+        name="grafana-ini-config-map",
+        from_file=f"{grafana_assets}/grafana.ini",
+        namespace=monitoring_namespace
+    )
+    secret_content = {
+        "apiVersion": 1,
+        "datasources": [
+            {
+                "name": "ScdfPrometheus",
+                "type": "prometheus",
+                "access": "proxy",
+                "org_id": "1",
+                "url": f"http://{prometheus_host}:{prometheus_port}",
+                "is_default": True,
+                "version": 5,
+                "editable": True,
+                "read_only": False,
+            }
+        ],
+    }
+    tmp_secret = tempfile.NamedTemporaryFile(mode="w", prefix=".yaml")
+    yaml.dump(secret_content, tmp_secret)
+    kubernetes.create_secret(
+        name="grafana-datasources",
+        from_file=tmp_secret.name,
+        key_name="datasources.yaml",
+        namespace=monitoring_namespace,
+    )
+    helm.install(
+        chart="bitnami/grafana",
+        release="grafana",
+        version="5.2.19",
+        values=f"{grafana_assets}/values.yml",
+        namespace=monitoring_namespace,
+        set_options={
+            "service.type": "LoadBalancer",
+            "dashboardsProvider.enabled": "true",
+            "dashboardsConfigMaps[0].configMapName": "grafana-dashboards-scdf-applications",
+            "dashboardsConfigMaps[0].fileName": "scdf-applications.json",
+            "dashboardsConfigMaps[1].configMapName": "grafana-dashboards-scdf-streams",
+            "dashboardsConfigMaps[1].fileName": "scdf-streams.json",
+            "dashboardsConfigMaps[2].configMapName": "grafana-dashboards-scdf-task-batch",
+            "dashboardsConfigMaps[2].fileName": "scdf-task-batch.json",
+            "dashboardsConfigMaps[3].configMapName": "grafana-dashboards-scdf-servers",
+            "dashboardsConfigMaps[3].fileName": "scdf-servers.json",
+            "dashboardsConfigMaps[4].configMapName": "grafana-dashboards-scdf-kafka-streams",
+            "dashboardsConfigMaps[4].fileName": "scdf-kafka-streams.json",
+            "datasources.secretName": "grafana-datasources",
+        },
+    )
+    client_name, client_secret = create_client(keycloak=keycloak, domain=domain, username=namespace, application="grafana")
+
+    @retry(stop=stop_after_delay(60), wait=wait_fixed(2))
+    def get_external_ip() -> str:
+        return kubernetes.get_service_external_ip("grafana", namespace)
+
+    # configure SCDF access
+    grafana_ip = get_external_ip()
+    grafana_name = f"grafana-{namespace}"
+    create_route(
+        kong=kong,
+        service_name=grafana_name,
+        target_host=grafana_ip,
+        target_port=3000,
+        match_host=f"grafana-{namespace}.{domain}",
+        client_id=client_name,
+        client_secret=client_secret,
+    )
+
+
 def install_scdf(domain: str, namespace: str, kong: Kong, keycloak: Keycloak):
     client_name, client_secret = create_client(keycloak=keycloak, domain=domain, username=namespace, application="scdf")
     # deploy SCDF
@@ -98,6 +186,10 @@ def install_scdf(domain: str, namespace: str, kong: Kong, keycloak: Keycloak):
         version="2.11.2",
         namespace=namespace,
         values=f"{assets}/values.yml",
+        set_options={
+            "metrics.serviceMonitor.namespace": namespace,
+            "server.configuration.metricsDashboard": f"https://grafana-{namespace}.{domain}"
+        }
     )
     kubernetes.wait_pod_ready("app.kubernetes.io/component=server", namespace, timeout=10 * 60)
 
@@ -155,12 +247,7 @@ def install_studio(
     # )
     private_ip = os.environ.get("PRIVATE_IP")
     tag = f"{private_ip}:5000/metis/studio:0.2"
-    kubernetes.apply(
-        template_url=f"{assets}/pv.yml",
-        namespace=None,
-        storage_class_name=namespace,
-        size=storage_size
-    )
+    kubernetes.apply(template_url=f"{assets}/pv.yml", namespace=None, storage_class_name=namespace, size=storage_size)
     kubernetes.apply(
         f"{assets}/metis-studio.yml",
         namespace=namespace,
@@ -314,7 +401,7 @@ def deploy(
     )
 
     create_namespace(username)
-
+    install_monitoring_tools(domain=domain, namespace=username, kong=kong, keycloak=keycloak)
     # deploy scdf services
     install_scdf(domain=domain, namespace=username, kong=kong, keycloak=keycloak)
     install_studio(

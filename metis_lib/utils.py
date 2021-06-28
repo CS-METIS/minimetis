@@ -1,4 +1,5 @@
 import os
+import requests
 from pathlib import Path
 from typing import Optional, Type, TypeVar
 from distutils.util import strtobool
@@ -22,7 +23,7 @@ def admin_service_internal_url(name: str, port: int) -> str:
     return f"http://{ip}:{port}/{name}"
 
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 def get_env(variable_type: Type[T], key: str, default: Optional[str] = None) -> T:
@@ -31,3 +32,10 @@ def get_env(variable_type: Type[T], key: str, default: Optional[str] = None) -> 
             return v
         return bool(strtobool(os.environ.get(key, default)))
     return variable_type((os.environ.get(key, default)))
+
+
+def download(url: str, destination: str):
+    r = requests.get(url, allow_redirects=True)
+    if 200 <= r.status_code < 300:
+        with open(destination, "w") as dst:
+            dst.write(str(r.content))

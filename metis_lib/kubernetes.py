@@ -18,11 +18,12 @@ def apply(template_url: str, namespace: Optional[str] = None, **kwargs):
         if kwargs:
             obj = string.Template(obj).substitute(kwargs)
         import tempfile
+
         tmp = tempfile.NamedTemporaryFile(suffix=".yml", delete=False)
         print(f"Tmp {template_url} {tmp.name}")
         tmp.write(str.encode(obj))
         tmp.close()
-        run(f'kubectl apply{namespace_opt} -f {tmp.name}')
+        run(f"kubectl apply{namespace_opt} -f {tmp.name}")
 
 
 def wait_pod_ready(label: str, namespace: str = "default", timeout: int = -1) -> bool:
@@ -99,3 +100,22 @@ def add_host_aliases(
     with open(file_name, "w+") as f:
         f.write(json.dumps(resource_spec_obj, indent=2))
     run(f"kubectl apply -n {namespace} -f {file_name}")
+
+
+def create_config_map(name: str, from_file: str, key_name: Optional[str] = None, namespace: Optional[str] = None):
+    namespace_opt = ""
+    if namespace:
+        namespace_opt = f"-n {namespace} "
+    key_name_opt = ""
+    if key_name:
+        key_name_opt = f"{key_name}="
+    run(f"kubectl {namespace_opt}create configmap {name} --from-file={key_name_opt}{from_file}")
+
+
+def create_secret(name: str, from_file: str, key_name: Optional[str] = None, namespace: Optional[str] = None):
+    key_name_opt = ""
+    if key_name:
+        key_name_opt = f"{key_name}="
+    if namespace:
+        namespace_opt = f"-n {namespace} "
+    run(f"kubectl create {namespace_opt}secret generic {name} --from-file={key_name_opt}{from_file}")

@@ -811,7 +811,7 @@ rbac:
 ## Prometheus metrics
 ##
 metrics:
-  enabled: false
+  enabled: true
   ## Bitnami Prometheus Rsocket Proxy image
   ## ref: https://hub.docker.com/r/bitnami/prometheus-rsocket-proxy/tags/
   ##
@@ -919,7 +919,7 @@ metrics:
   ## Prometheus Operator ServiceMonitor configuration
   ##
   serviceMonitor:
-    enabled: false
+    enabled: true
     ## Labels to add to ServiceMonitor, in case prometheus operator is configured with serviceMonitorSelector
     ## ref: https://github.com/prometheus-operator/prometheus-operator/blob/master/Documentation/api.md#prometheusspec
     ##
