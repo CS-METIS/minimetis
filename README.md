@@ -45,7 +45,7 @@ PUBLIC_IP	codeserver-USERNAME.DOMAIN
 PUBLIC_IP	jupyterlab-USERNAME.DOMAIN
 PUBLIC_IP	ungit-USERNAME.DOMAIN
 PUBLIC_IP	filebrowser-USERNAME.DOMAIN
-PUBLIC_IP   grafana-USERNAME.DOMAIN
+PUBLIC_IP	grafana-USERNAME.DOMAIN
 ```
 - add the root certificate ./pki/CA Root Minimetis.pem to the trusted root certificate of the client browser
 
