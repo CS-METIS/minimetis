@@ -96,7 +96,7 @@ def install_monitoring_tools(domain: str, namespace: str, kong: Kong, keycloak: 
     monitoring_namespace = namespace
     kubernetes.create_namespace(monitoring_namespace)
     helm.install(release="prometheus", chart="bitnami/kube-prometheus", version="6.0.1", namespace=monitoring_namespace)
-    for dashboard in ["scdf-applications", "scdf-streams", "scdf-task-batch", "scdf-servers", "scdf-kafka-streams"]:
+    for dashboard in ["scdf-applications", "scdf-streams", "scdf-task-batch", "scdf-servers", "scdf-kafka-streams", "namespace"]:
         grafana_dashboard = f"{grafana_assets}/{dashboard}.json"
         kubernetes.create_config_map(
             name=f"grafana-dashboards-{dashboard}",
@@ -113,7 +113,7 @@ def install_monitoring_tools(domain: str, namespace: str, kong: Kong, keycloak: 
         "apiVersion": 1,
         "datasources": [
             {
-                "name": "ScdfPrometheus",
+                "name": "Prometheus",
                 "type": "prometheus",
                 "access": "proxy",
                 "org_id": "1",
@@ -152,6 +152,8 @@ def install_monitoring_tools(domain: str, namespace: str, kong: Kong, keycloak: 
             "dashboardsConfigMaps[3].fileName": "scdf-servers.json",
             "dashboardsConfigMaps[4].configMapName": "grafana-dashboards-scdf-kafka-streams",
             "dashboardsConfigMaps[4].fileName": "scdf-kafka-streams.json",
+            "dashboardsConfigMaps[5].configMapName": "grafana-dashboards-namespace",
+            "dashboardsConfigMaps[5].fileName": "namespace.json",
             "datasources.secretName": "grafana-datasources",
         },
     )
