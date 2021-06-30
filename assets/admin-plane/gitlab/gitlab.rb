@@ -1,6 +1,6 @@
 ## GitLab configuration settings
 
-external_url 'https://test-minimetis.dev/gitlab/'
+external_url 'https://csc-dev-env.dev/gitlab/'
 letsencrypt['enable'] = false
 
 gitlab_rails['gitlab_root_email']="admin@metis.eu"
@@ -15,7 +15,7 @@ gitlab_rails['omniauth_providers'] = [
       'name' => 'openid_connect',
       'scope' => ['openid','profile'],
       'response_type' => 'code',
-      'issuer' => 'https://test-minimetis.dev/keycloak/auth/realms/metis',
+      'issuer' => 'https://csc-dev-env.dev/keycloak/auth/realms/metis',
       'discovery' => true,
       'client_auth_method' => 'query',
       'uid_field' => 'preferred_username',
@@ -23,8 +23,8 @@ gitlab_rails['omniauth_providers'] = [
       'client_options' => {
         'scheme' => 'http',
         'identifier' => 'gitlab',
-        'secret' => '76e21742-7739-42f6-b136-aeeae333890d',
-        'redirect_uri' => 'https://test-minimetis.dev/gitlab//users/auth/openid_connect/callback'
+        'secret' => 'e18f270f-b512-49d9-8827-27138f8655ee',
+        'redirect_uri' => 'https://csc-dev-env.dev/gitlab//users/auth/openid_connect/callback'
       }
     }
   }

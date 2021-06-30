@@ -95,7 +95,13 @@ def install_monitoring_tools(domain: str, namespace: str, kong: Kong, keycloak: 
     prometheus_port = "9090"
     monitoring_namespace = namespace
     kubernetes.create_namespace(monitoring_namespace)
-    helm.install(release="prometheus", chart="bitnami/kube-prometheus", version="6.0.1", namespace=monitoring_namespace)
+    release_prefix = namespace
+    helm.install(
+        release=f"{release_prefix}-prometheus",
+        chart="bitnami/kube-prometheus",
+        version="6.0.1",
+        namespace=monitoring_namespace
+    )
     for dashboard in ["scdf-applications", "scdf-streams", "scdf-task-batch", "scdf-servers", "scdf-kafka-streams", "namespace"]:
         grafana_dashboard = f"{grafana_assets}/{dashboard}.json"
         kubernetes.create_config_map(
@@ -135,7 +141,7 @@ def install_monitoring_tools(domain: str, namespace: str, kong: Kong, keycloak: 
     )
     helm.install(
         chart="bitnami/grafana",
-        release="grafana",
+        release=f"{release_prefix}-grafana",
         version="5.2.19",
         values=f"{grafana_assets}/values.yml",
         namespace=monitoring_namespace,
@@ -161,7 +167,7 @@ def install_monitoring_tools(domain: str, namespace: str, kong: Kong, keycloak: 
 
     @retry(stop=stop_after_delay(60), wait=wait_fixed(2))
     def get_external_ip() -> str:
-        return kubernetes.get_service_external_ip("grafana", namespace)
+        return kubernetes.get_service_external_ip(f"{release_prefix}-grafana", namespace)
 
     # configure SCDF access
     grafana_ip = get_external_ip()

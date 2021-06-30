@@ -16,6 +16,17 @@ $ source metis.env
 ```
 $ ./install.sh
 ```
+
+---
+**NOTE**
+
+Sometimes Keycloak failed to start because it fails to load the assets/admin_plane/leycloak/kc.pkcs12 file.
+In this case:
+ - run ./delete_admin_plane.sh
+ - delete ./pki directory
+ - run ./install.sh again 
+
+---
 ### Configuration of the admin client host
 replace PUBLIC_IP by the IP address of the host where you install the minimetis admin plane.
 Replace DOMAIN by the value of the DOMAIN environment variable you set in the metis.env file.
@@ -24,7 +35,7 @@ Replace DOMAIN by the value of the DOMAIN environment variable you set in the me
 ```
 PUBLIC_IP	DOMAIN
 ```
-- add the root certificate ./pki/CA.pem to the trusted root certificate of the client browser
+- add the root certificate ./pki/CA Root Minimetis.pem to the trusted root certificate of the client browser
 
 ## METIS admin plane
 ### add a new data mining plane
