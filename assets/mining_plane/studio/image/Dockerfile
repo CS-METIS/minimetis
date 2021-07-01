@@ -5,7 +5,7 @@ RUN apt update -y && apt upgrade -y
 
 ENV DEBIAN_FRONTEND=noninteractive 
 RUN  apt update -y && apt install -y --no-install-recommends curl wget git sudo build-essential unzip \
-  lldb python gnupg libnss3 locales fuse libfuse2 s3fs default-jdk maven iputils-ping vim \
+  lldb python gnupg libnss3 locales fuse libfuse2 s3fs default-jdk maven iputils-ping vim libxml2-utils\
   apt-transport-https ca-certificates software-properties-common \
   && apt clean -y
 
@@ -67,7 +67,7 @@ RUN curl -L https://repo.spring.io/snapshot/org/springframework/cloud/spring-clo
 
 # RUN conda install pip -y
 # # Install JupyterLab
-RUN conda install -c conda-forge -y jupyterlab numpy pandas geopy nodejs yarn nbdime nbresuse jupyterlab-git jupyter-resource-usage ipykernel ipyvuetify voila pylint flake8 mypy
+RUN conda install -c conda-forge -y jupyterlab numpy pandas geopy nodejs yarn nbdime nbresuse jupyterlab-git jupyter-resource-usage ipykernel ipyvuetify voila pylint flake8 mypy rope black
 
 # RUN git clone https://github.com/cytoscape/ipycytoscape.git
 # RUN pip install ./ipycytoscape
@@ -96,6 +96,8 @@ RUN code-server --install-extension nickdemayo.vscode-json-editor
 RUN code-server --install-extension bungcip.better-toml
 ## yaml
 RUN code-server --install-extension redhat.vscode-yaml
+## xml
+RUN code-server --install-extension redhat.vscode-xml
 ## Java
 RUN code-server --install-extension vscjava.vscode-java-pack
 RUN code-server --install-extension Pivotal.vscode-boot-dev-pack

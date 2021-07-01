@@ -183,6 +183,7 @@ services:
       - registry_data:/var/lib/registry
     networks:
       - admin-net
+
   
 volumes:
   db-data-kong-postgres:

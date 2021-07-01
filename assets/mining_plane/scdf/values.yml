@@ -84,7 +84,11 @@ server:
     ##     registry-host: registry-1.docker.io
     ##     authorization-type: dockeroauth2
     ##
-    containerRegistries: {}
+    containerRegistries: 
+      registry: 
+        registry-host: 192.168.0.84:5000
+        authorization-type: "anonymous"
+        disableSslVerification: true
     ## Endpoint to the grafana instance (Deprecated: use the metricsDashboard instead)
     ##
     grafanaInfo:
