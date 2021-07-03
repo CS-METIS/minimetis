@@ -25,7 +25,7 @@ def get_container_ip(container: str) -> str:
 
 
 def push(image_tag: str):
-    sh.run(f"docker push {image_tag}")
+    sh.run(f"docker push  {image_tag}")
 
 
 def pull(image_tag: str):

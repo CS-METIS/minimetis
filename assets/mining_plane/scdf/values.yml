@@ -51,7 +51,10 @@ server:
   ## Deployment pod host aliases
   ## https://kubernetes.io/docs/concepts/services-networking/add-entries-to-pod-etc-hosts-with-host-aliases/
   ##
-  hostAliases: []
+  hostAliases:
+  - ip: ${registry_private_ip}
+    hostnames:
+    - "registry"
 
   composedTaskRunner:
     ## Bitnami Spring Cloud Dataflow Composed Task Runner image
@@ -85,8 +88,8 @@ server:
     ##     authorization-type: dockeroauth2
     ##
     containerRegistries: 
-      registry: 
-        registry-host: 192.168.0.84:5000
+      internal-registry: 
+        registry-host: "registry:4443"
         authorization-type: "anonymous"
         disableSslVerification: true
     ## Endpoint to the grafana instance (Deprecated: use the metricsDashboard instead)

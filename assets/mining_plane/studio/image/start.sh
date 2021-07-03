@@ -31,7 +31,7 @@ function rename_user {
     echo "export USERFULLNAME=${USERFULLNAME}" >> /home/${USERNAME}/.local/user_env.sh
     echo "export GIT_AUTHOR_NAME=${USERFULLNAME}" >> /home/${USERNAME}/.local/user_env.sh
     echo "export GIT_AUTHOR_EMAIL=${USEREMAIL}" >> /home/${USERNAME}/.local/user_env.sh
-    echo "export PATH=/home/${USERNAME}/bin:/home/${USERNAME}/.local/bin:/usr/local/devtools/bin:\${PATH}" >> /home/${USERNAME}/.local/user_env.sh
+    echo "export PATH=/usr/local/devtools/spring-2.5.2/bin:/home/${USERNAME}/bin:/home/${USERNAME}/.local/bin:/usr/local/devtools/bin:\${PATH}" >> /home/${USERNAME}/.local/user_env.sh
     echo "source /home/${USERNAME}/.local/user_env.sh" >> /home/${USERNAME}/.bashrc
 
     sudo -u ${USERNAME} bash -c "git config --global user.name \"${USERFULLNAME}\""

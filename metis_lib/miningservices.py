@@ -7,7 +7,7 @@ from tenacity import retry
 from tenacity.stop import stop_after_delay
 from tenacity.wait import wait_fixed
 
-from metis_lib import helm, kubernetes, sh, templates, utils
+from metis_lib import helm, kubernetes, sh, templates
 from metis_lib.keycloak import Keycloak
 from metis_lib.kong import Kong
 from metis_lib.utils import (
@@ -187,7 +187,7 @@ def install_scdf(domain: str, namespace: str, kong: Kong, keycloak: Keycloak):
     client_name, client_secret = create_client(keycloak=keycloak, domain=domain, username=namespace, application="scdf")
     # deploy SCDF
     assets = asset_path("mining_plane", "scdf")
-
+    private_ip = os.environ.get("PRIVATE_IP")
     helm.install(
         release="scdf",
         chart="bitnami/spring-cloud-dataflow",
@@ -197,7 +197,8 @@ def install_scdf(domain: str, namespace: str, kong: Kong, keycloak: Keycloak):
         set_options={
             "metrics.serviceMonitor.namespace": namespace,
             "server.configuration.metricsDashboard": f"https://grafana-{namespace}.{domain}"
-        }
+        },
+        registry_private_ip=private_ip,
     )
     kubernetes.wait_pod_ready("app.kubernetes.io/component=server", namespace, timeout=10 * 60)
 
@@ -254,8 +255,9 @@ def install_studio(
     #     size=storage_size
     # )
     private_ip = os.environ.get("PRIVATE_IP")
-    tag = f"{private_ip}:5000/metis/studio:0.2"
+    tag = f"{private_ip}:4443/metis/studio:0.2"
     kubernetes.apply(template_url=f"{assets}/pv.yml", namespace=None, storage_class_name=namespace, size=storage_size)
+    kubernetes.apply(template_url=f"{assets}/account.yml", namespace=namespace, username=namespace)
     kubernetes.apply(
         f"{assets}/metis-studio.yml",
         namespace=namespace,
@@ -345,7 +347,7 @@ def install_ui(
     # deploy studio
     assets = asset_path("mining_plane", "ui")
     private_ip = os.environ.get("PRIVATE_IP")
-    tag = f"{private_ip}:5000/metis/miningui:0.2"
+    tag = f"{private_ip}:4443/metis/miningui:0.2"
     kubernetes.apply(
         f"{assets}/metis-mining-ui.yml",
         namespace=namespace,

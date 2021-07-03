@@ -178,11 +178,22 @@ services:
     extra_hosts:
       - ${DOMAIN}:172.17.0.1
     ports:
-      - ${PRIVATE_IP}:5000:5000
+      - ${PRIVATE_IP}:4443:443
+    environment:
+      REGISTRY_HTTP_ADDR: 0.0.0.0:443
+      REGISTRY_HTTP_TLS_CERTIFICATE: /certs/server.pem
+      REGISTRY_HTTP_TLS_KEY: /certs/server.key
+      REGISTRY_HTTP_SECRET: "a secret"
     volumes:
       - registry_data:/var/lib/registry
+      - ${METIS_HOME}/pki:/certs
     networks:
       - admin-net
+
+      # -v "$(pwd)"/certs:/certs \
+      # -e REGISTRY_HTTP_ADDR=0.0.0.0:443 \
+      # -e REGISTRY_HTTP_TLS_CERTIFICATE=/certs/domain.crt \
+      # -e REGISTRY_HTTP_TLS_KEY=/certs/domain.key \
 
   
 volumes:

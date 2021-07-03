@@ -5,7 +5,7 @@ RUN apt update -y && apt upgrade -y
 
 ENV DEBIAN_FRONTEND=noninteractive 
 RUN  apt update -y && apt install -y --no-install-recommends curl wget git sudo build-essential unzip \
-  lldb python gnupg libnss3 locales fuse libfuse2 s3fs default-jdk maven iputils-ping vim libxml2-utils\
+  lldb python gnupg libnss3 locales fuse libfuse2 s3fs default-jdk maven iputils-ping vim libxml2-utils tree \
   apt-transport-https ca-certificates software-properties-common \
   && apt clean -y
 
@@ -29,6 +29,13 @@ RUN adduser --gecos '/usr/bin/bash' --disabled-password eopfdev && \
 
 ENV SHELL bash
 
+RUN mkdir -p /usr/local/devtools/bin
+
+## install kubectl
+RUN curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.18.4/bin/linux/amd64/kubectl
+RUN chmod +x kubectl
+RUN sudo mv kubectl /usr/local/devtools/bin
+
 # Install miniconda
 RUN curl -L https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -o Miniconda3-latest-Linux-x86_64.sh
 RUN chmod u+x ./Miniconda3-latest-Linux-x86_64.sh
@@ -36,11 +43,19 @@ RUN sudo ./Miniconda3-latest-Linux-x86_64.sh -bfp /usr/local/devtools
 RUN rm -f Miniconda3-latest-Linux-x86_64.sh
 # Install code-server 
 RUN curl -fsSL https://code-server.dev/install.sh > install.sh
-RUN sh install.sh --method=standalone --prefix=/usr/local/devtools --version=3.10.0
+RUN sh install.sh --method=standalone --prefix=/usr/local/devtools --version=3.10.2
 RUN rm -f install.sh
 
+# Install scdf shell
 COPY scdf-shell /usr/local/devtools/bin/scdf-shell
 RUN chmod a+x /usr/local/devtools/bin/scdf-shell
+
+# Install spring boot cli
+RUN wget https://repo.spring.io/release/org/springframework/boot/spring-boot-cli/2.5.2/spring-boot-cli-2.5.2-bin.tar.gz
+RUN tar -zxvf spring-boot-cli-2.5.2-bin.tar.gz -C /usr/local/devtools/
+RUN rm -f spring-boot-cli-2.5.2-bin.tar.gz
+
+
 
 RUN chown -R eopfdev:eopfdev /usr/local/devtools
 
@@ -100,9 +115,10 @@ RUN code-server --install-extension redhat.vscode-yaml
 RUN code-server --install-extension redhat.vscode-xml
 ## Java
 RUN code-server --install-extension vscjava.vscode-java-pack
+RUN code-server --install-extension redhat.java
 RUN code-server --install-extension Pivotal.vscode-boot-dev-pack
 
-# ADD settings.json /home/eopfdev/.local/share/code-server/User
+ADD settings.json /home/eopfdev/.local/share/code-server/User
 
 RUN npm install -g ungit
 

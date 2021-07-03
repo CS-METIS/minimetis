@@ -1,5 +1,12 @@
 {
-    "extensions.autoUpdate": false,
-    "extensions.autoCheckUpdates": false,
-    "editor.fontSize": 13
+    "java.semanticHighlighting.enabled": true,
+    "java.configuration.checkProjectSettingsExclusions": false,
+    "workbench.editorAssociations": [
+        {
+            "viewType": "jupyter.notebook.ipynb",
+            "filenamePattern": "*.ipynb"
+        }
+    ],
+    "editor.minimap.enabled": false,
+    "terminal.integrated.tabs.enabled": true
 }

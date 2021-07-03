@@ -27,23 +27,23 @@ def deploy():
 
     server_key = "pki/server.key"
     server_cert = "pki/server.pem"
-    ca_cert = "pki/CA.pem"
+    ca_cert = "pki/CA Root Minimetis.pem"
     if not os.path.exists("pki"):
         os.mkdir("pki")
         pki = PKI()
         ca_cert, ca_key = pki.create_ca_cert()
         server_cert, server_key = pki.create_server_cert(ca_cert_file=ca_cert, ca_key_file=ca_key)
 
-        create_keystore(
-            keypath=server_key,
-            certpath=server_cert,
-            password=metis_admin_password,
-            output=f"{admin_assets}/keycloak/kc.pkcs12",
-        )
-        os.chmod(f"{admin_assets}/keycloak/kc.pkcs12", 0o0666)
-        shutil.copy(ca_cert, f"{admin_assets}/gitlab/CA.crt")
-        shutil.copy(server_cert, f"{admin_assets}/gitlab/ssl/{domain}.crt")
-        shutil.copy(server_key, f"{admin_assets}/gitlab/ssl/{domain}.key")
+    create_keystore(
+        keypath=server_key,
+        certpath=server_cert,
+        password=metis_admin_password,
+        output=f"{admin_assets}/keycloak/kc.pkcs12",
+    )
+    os.chmod(f"{admin_assets}/keycloak/kc.pkcs12", 0o0666)
+    shutil.copy(ca_cert, f"{admin_assets}/gitlab/CA.crt")
+    shutil.copy(server_cert, f"{admin_assets}/gitlab/ssl/{domain}.crt")
+    shutil.copy(server_key, f"{admin_assets}/gitlab/ssl/{domain}.key")
 
     compose = Compose(f"{admin_assets}/docker-compose.yml")
     compose.up(["kong", "konga", "keycloak", "portainer", "registry"])
@@ -124,12 +124,12 @@ def deploy():
     gitlab.wait_ready(timeout=10 * 60)
     compose.exec("gitlab", "update-ca-certificates")
 
-    tag = f"{private_ip}:5000/metis/studio:0.2"
+    tag = f"{private_ip}:4443/metis/studio:0.2"
     studio_assets = utils.asset_path("mining_plane", "studio")
     docker.build_image(f"{studio_assets}/image/Dockerfile", tag)
     docker.push(tag)
 
-    tag = f"{private_ip}:5000/metis/miningui:0.2"
+    tag = f"{private_ip}:4443/metis/miningui:0.2"
     ui_assets = utils.asset_path("mining_plane", "ui")
     docker.build_image(f"{ui_assets}/image/Dockerfile", tag)
     docker.push(tag)
