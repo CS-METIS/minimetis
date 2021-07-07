@@ -10,7 +10,7 @@ sudo mv tmp.json /etc/docker/daemon.json
 rm -f tmp.json
 sudo systemctl restart docker
 cat /etc/docker/daemon.json
-minikube start --network-plugin=cni --cni=calico --kubernetes-version=v${KUBE_VERSION} --driver=none --insecure-registry=${PRIVATE_IP}:5000
+minikube start --network-plugin=cni --cni=calico --kubernetes-version=v${KUBE_VERSION} --driver=none --insecure-registry=${PRIVATE_IP}:4443
 
 
 # minikube start --network-plugin=cni --cni=calico --kubernetes-version=v${KUBE_VERSION} --driver=none 
