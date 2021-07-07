@@ -22,6 +22,8 @@ nohup minikube tunnel > /dev/null&
 # configure DNS
 sudo PRIVATE_IP=${PRIVATE_IP} DOMAIN=${DOMAIN} sh -c 'echo "${PRIVATE_IP} ${DOMAIN}" >> /etc/hosts'
 sudo PRIVATE_IP=${PRIVATE_IP} DOMAIN=${DOMAIN} sh -c 'echo "${PRIVATE_IP} portainer.${DOMAIN}" >> /etc/hosts'
+sudo PRIVATE_IP=${PRIVATE_IP} DOMAIN=${DOMAIN} sh -c 'echo "${PRIVATE_IP} registry" >> /etc/hosts'
+sudo PRIVATE_IP=${PRIVATE_IP} DOMAIN=${DOMAIN} sh -c 'echo "${PRIVATE_IP} registry.${DOMAIN}" >> /etc/hosts'
 
 python cli/install_admin_plane.py
 python cli/install_data_plane.py
