@@ -1,7 +1,7 @@
 import os
 import shutil
 
-from metis_lib import kubernetes
+from metis_lib import helm, kubernetes
 from metis_lib.portainer import Portainer
 from metis_lib.kong import Kong
 from metis_lib.keycloak import Keycloak
@@ -124,6 +124,14 @@ def deploy():
     gitlab.wait_ready(timeout=10 * 60)
     compose.exec("gitlab", "update-ca-certificates")
 
+    # Install Prometheus
+    monitoring_namespace = "admin-plane"
+    kubernetes.create_namespace(monitoring_namespace)
+    helm.install(
+        release="prometheus", chart="bitnami/kube-prometheus", version="6.0.1", namespace=monitoring_namespace
+    )
+
+    # Deploy necessary images
     tag = f"{private_ip}:4443/metis/studio:0.2"
     studio_assets = utils.asset_path("mining_plane", "studio")
     docker.build_image(f"{studio_assets}/image/Dockerfile", tag)

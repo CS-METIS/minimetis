@@ -45,6 +45,7 @@ spec:
       - ip: ${registry_private_ip}
         hostnames:
         - "registry"
+        - "registry.${domain}"
       serviceAccountName: ${username}-user
       containers:
         - name: metis-studio

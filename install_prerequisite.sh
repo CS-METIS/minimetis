@@ -9,7 +9,16 @@ echo \
   "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
   $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 sudo apt-get update
-sudo apt-get install -y docker-ce docker-ce-cli containerd.io 
+sudo apt-get install -y docker-ce docker-ce-cli containerd.io
+cat <<EOF >> tmp.json
+{ 
+    "insecure-registries": [
+        "${PRIVATE_IP}:4443"
+        ] 
+}
+EOF
+sudo mv tmp.json /etc/docker/daemon.json
+rm -f tmp.json
 sleep 30
 sudo systemctl restart docker
 docker run hello-world

@@ -96,12 +96,6 @@ def install_monitoring_tools(domain: str, namespace: str, kong: Kong, keycloak: 
     monitoring_namespace = namespace
     kubernetes.create_namespace(monitoring_namespace)
     release_prefix = namespace
-    helm.install(
-        release=f"{release_prefix}-prometheus",
-        chart="bitnami/kube-prometheus",
-        version="6.0.1",
-        namespace=monitoring_namespace
-    )
     for dashboard in ["scdf-applications", "scdf-streams", "scdf-task-batch", "scdf-servers", "scdf-kafka-streams", "namespace"]:
         grafana_dashboard = f"{grafana_assets}/{dashboard}.json"
         kubernetes.create_config_map(
@@ -195,7 +189,7 @@ def install_scdf(domain: str, namespace: str, kong: Kong, keycloak: Keycloak):
         namespace=namespace,
         values=f"{assets}/values.yml",
         set_options={
-            "metrics.serviceMonitor.namespace": namespace,
+            "metrics.serviceMonitor.namespace": "admin-plane",
             "server.configuration.metricsDashboard": f"https://grafana-{namespace}.{domain}"
         },
         registry_private_ip=private_ip,
@@ -269,6 +263,7 @@ def install_studio(
         registry_private_ip=private_ip,
         storage_class_name=namespace,
         size=storage_size,
+        domain=domain
     )
 
     kubernetes.wait_pod_ready("app=metis-studio", namespace, timeout=10 * 60)
