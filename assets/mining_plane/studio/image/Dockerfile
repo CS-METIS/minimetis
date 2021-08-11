@@ -5,7 +5,7 @@ RUN apt update -y && apt upgrade -y
 
 ENV DEBIAN_FRONTEND=noninteractive 
 RUN  apt update -y && apt install -y --no-install-recommends curl wget git sudo build-essential unzip \
-  lldb python gnupg libnss3 locales fuse libfuse2 s3fs default-jdk maven iputils-ping vim libxml2-utils tree \
+  lldb python gnupg libnss3 locales fuse libfuse2 s3fs default-jdk maven iputils-ping vim libxml2-utils tree dnsutils \
   apt-transport-https ca-certificates software-properties-common \
   && apt clean -y
 

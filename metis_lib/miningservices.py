@@ -189,7 +189,7 @@ def install_scdf(domain: str, namespace: str, kong: Kong, keycloak: Keycloak):
         namespace=namespace,
         values=f"{assets}/values.yml",
         set_options={
-            "metrics.serviceMonitor.namespace": "admin-plane",
+            "metrics.serviceMonitor.namespace": namespace,
             "server.configuration.metricsDashboard": f"https://grafana-{namespace}.{domain}"
         },
         registry_private_ip=private_ip,

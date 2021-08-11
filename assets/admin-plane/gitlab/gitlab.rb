@@ -23,7 +23,7 @@ gitlab_rails['omniauth_providers'] = [
       'client_options' => {
         'scheme' => 'http',
         'identifier' => 'gitlab',
-        'secret' => '5ce9b478-8ebc-464b-836e-83847d8a7269',
+        'secret' => '8406f3f8-6cef-4a91-bf97-f93e64c6a2fd',
         'redirect_uri' => 'https://csc-dev-env.dev/gitlab//users/auth/openid_connect/callback'
       }
     }
