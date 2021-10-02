@@ -4,6 +4,7 @@ Description=Code Server IDE
 [Service]
 Type=simple
 PassEnvironment=SHELL PATH SERVICE_URL ITEM_URL
+EnvironmentFile=/home/USER/.local/user_env.sh
 ExecStart=/usr/local/devtools/bin/code-server \
     --bind-addr=0.0.0.0:8081 \
     --auth=none \
