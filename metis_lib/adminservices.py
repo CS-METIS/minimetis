@@ -2,6 +2,7 @@ import os
 import shutil
 
 from metis_lib import helm, kubernetes
+from metis_lib import keycloak
 from metis_lib.portainer import Portainer
 from metis_lib.kong import Kong
 from metis_lib.keycloak import Keycloak
@@ -10,6 +11,106 @@ from metis_lib.gitlab import Gitlab
 from metis_lib.certificates import PKI, create_keystore
 from metis_lib import docker
 from metis_lib import utils
+
+
+def kong_certificate(server_cert, server_key, domain, kong: Kong, private_ip: str):
+    kong.wait_ready(timeout=5 * 60)
+    kong.add_certificate(server_cert, server_key, [domain])
+    kong.add_certificate(server_cert, server_key, [f"*.{domain}"])
+
+
+def install_keycloak(metis_admin_password: str, keycloak: Keycloak, kong: Kong):
+    kong.create_service("keycloak", "keycloak", 8443, protocol="https")
+    keycloak.create_realm("metis")
+    keycloak.create_realm_role("metis", "metis-admin")
+    keycloak.create_user(
+        realm_name="metis",
+        email="admin@metis.eu",
+        username="admin",
+        password=metis_admin_password,
+    )
+    keycloak.assign_realm_role_to_user("metis", "admin", "metis-admin")
+
+
+def install_gitlab(keycloak: Keycloak, kong: Kong):
+    kong.create_service("gitlab", "gitlab", 443, protocol="https")
+    keycloak.create_client("metis", "gitlab")
+    keycloak.add_realm_role_to_client_scope("metis", "gitlab", "metis-admin")
+    keycloak.add_mapper_to_client("metis", "gitlab", mapper_name="name", mapper_property="Username")
+    keycloak.add_mapper_to_client("metis", "gitlab", mapper_name="email", mapper_property="Email")
+    keycloak.add_mapper_to_client("metis", "gitlab", mapper_name="first_name", mapper_property="FirstName")
+    keycloak.add_mapper_to_client("metis", "gitlab", mapper_name="last_name", mapper_property="LastName")
+
+
+def install_konga(keycloak: Keycloak, kong: Kong):
+    kong.create_service("konga", "konga", 1337, strip_path=True)
+    keycloak.create_client("metis", "konga")
+    keycloak.add_realm_role_to_client_scope("metis", "konga", "metis-admin")
+
+
+def install_portainer(metis_admin_password: str, kong: Kong, private_ip: str):
+    kong.create_service("portainer", private_ip, 9000, strip_path=True)
+
+    portainer = Portainer(
+        username="admin",
+        password=metis_admin_password,
+    )
+    portainer_agent_address = kubernetes.get_service_external_address("portainer-agent", namespace="portainer")
+    portainer.wait_ready(timeout=5 * 60)
+    portainer.register_docker_endpoint("Metis control plane")
+    portainer.register_kubernetes_endpoint(portainer_agent_address, "Metis cluster", timeout=10 * 60)
+
+
+def create_gitlab_role_for_dataminer(
+    keycloak: Keycloak,
+    kong: Kong,
+    compose: Compose,
+    admin_assets,
+    domain,
+    keycloak_external_ssl_url: str,
+):
+    keycloak.create_client_role("metis", "gitlab", "dataminer")
+
+    gitlab = Gitlab(
+        gitlab_url=f"https://{domain}/gitlab/",
+        gitlab_rb_path=f"{admin_assets}/gitlab/gitlab.rb",
+    )
+
+    gitlab.configure_omiauth(
+        oidc_client_id="gitlab",  # keycloak.get_client_id("metis", "gitlab"),
+        oidc_client_secret=keycloak.get_client_secret("metis", "gitlab"),
+        issuer_url=f"{keycloak_external_ssl_url}/auth/realms/metis",
+    )
+    kong.activate_response_transformer_plugin(
+        service_name="gitlab",
+        headers_to_remove=["X-Frame-Options", "Content-Security-Policy"],
+    )
+    compose.up(["gitlab"])
+    gitlab.wait_ready(timeout=10 * 60)
+    compose.exec("gitlab", "update-ca-certificates")
+
+
+def install_prometheus(monitoring_namespace: str):
+    kubernetes.create_namespace(monitoring_namespace)
+    helm.install(
+        release="prometheus",
+        chart="bitnami/kube-prometheus",
+        version="6.0.1",
+        namespace=monitoring_namespace,
+    )
+
+
+def deploy_image(private_ip: str, tag_name: str, client: str):
+    tag = f"{private_ip}:4443/metis/{tag_name}:0.2"
+    client_assets = utils.asset_path("mining_plane", client)
+    docker.build_image(f"{client_assets}/image/Dockerfile", tag)
+    docker.push(tag)
+
+
+def patch_scdf_image(processor_name: str):
+    scdf_assets = utils.asset_path("mining_plane", "scdf")
+    tag = f"springcloudstream/{processor_name}-processor-kafka:patched"
+    docker.build_image(f"{scdf_assets}/scdf_app_patched_images/{processor_name}/Dockerfile", tag)
 
 
 def deploy():
@@ -50,14 +151,14 @@ def deploy():
     kubernetes.wait_pod_ready(namespace="portainer", label="app=portainer-agent", timeout=10 * 60)
 
     kong = Kong()
-    kong.wait_ready(timeout=5 * 60)
-    kong.add_certificate(server_cert, server_key, [domain])
-    kong.add_certificate(server_cert, server_key, [f"*.{domain}"])
-    kong.create_service("keycloak", "keycloak", 8443, protocol="https")
-    kong.create_service("gitlab", "gitlab", 443, protocol="https")
-    kong.create_service("konga", "konga", 1337, strip_path=True)
-    kong.create_service("portainer", private_ip, 9000, strip_path=True)
-    # kong.create_service("minio", "minio", 9000)
+
+    kong_certificate(
+        server_cert=server_cert,
+        server_key=server_key,
+        domain=domain,
+        kong=kong,
+        private_ip=private_ip,
+    )
 
     keycloak_ip = docker.get_container_ip("keycloak")
     keycloak_internal_url = f"http://{keycloak_ip}:8080/keycloak"
@@ -67,83 +168,28 @@ def deploy():
         password=metis_admin_password,
         timeout=5 * 60,
     )
-    keycloak.create_realm("metis")
-    keycloak.create_realm_role("metis", "metis-admin")
-    keycloak.create_user(
-        realm_name="metis",
-        email="admin@metis.eu",
-        username="admin",
-        password=metis_admin_password,
-    )
-    keycloak.assign_realm_role_to_user("metis", "admin", "metis-admin")
 
-    # Configure gitlab authentication
-    keycloak.create_client("metis", "gitlab")
-    keycloak.add_realm_role_to_client_scope("metis", "gitlab", "metis-admin")
-    keycloak.add_mapper_to_client("metis", "gitlab", mapper_name="name", mapper_property="Username")
-    keycloak.add_mapper_to_client("metis", "gitlab", mapper_name="email", mapper_property="Email")
-    keycloak.add_mapper_to_client("metis", "gitlab", mapper_name="first_name", mapper_property="FirstName")
-    keycloak.add_mapper_to_client("metis", "gitlab", mapper_name="last_name", mapper_property="LastName")
+    install_keycloak(metis_admin_password=metis_admin_password, keycloak=keycloak, kong=kong)
 
-    # Configure konga authentication
-    keycloak.create_client("metis", "konga")
-    keycloak.add_realm_role_to_client_scope("metis", "konga", "metis-admin")
-    kong.activate_oidc_plugin(
-        service_name="konga",
-        oidc_provider_url=keycloak_external_ssl_url,
-        oidc_client_id="konga",
-        oidc_client_secret=keycloak.get_client_secret("metis", "konga"),
+    install_gitlab(keycloak=keycloak, kong=kong)
+
+    install_konga(keycloak=keycloak, kong=kong)
+
+    install_portainer(metis_admin_password=metis_admin_password, kong=kong, private_ip=private_ip)
+
+    create_gitlab_role_for_dataminer(
+        keycloak=keycloak,
+        kong=kong,
+        compose=compose,
+        admin_assets=admin_assets,
+        domain=domain,
+        keycloak_external_ssl_url=keycloak_external_ssl_url,
     )
 
-    # Create gitlab role for dataminer
-    keycloak.create_client_role("metis", "gitlab", "dataminer")
+    install_prometheus("admin-plane")
 
-    portainer = Portainer(
-        username="admin",
-        password=metis_admin_password,
-    )
-    portainer_agent_address = kubernetes.get_service_external_address("portainer-agent", namespace="portainer")
-    portainer.wait_ready(timeout=5 * 60)
-    portainer.register_docker_endpoint("Metis control plane")
-    portainer.register_kubernetes_endpoint(portainer_agent_address, "Metis cluster", timeout=10 * 60)
-    gitlab = Gitlab(
-        gitlab_url=f"https://{domain}/gitlab/",
-        gitlab_rb_path=f"{admin_assets}/gitlab/gitlab.rb",
-    )
+    deploy_image(private_ip=private_ip, tag_name="studio", client="studio")
+    deploy_image(private_ip=private_ip, tag_name="miningui", client="ui")
 
-    gitlab.configure_omiauth(
-        oidc_client_id="gitlab",  # keycloak.get_client_id("metis", "gitlab"),
-        oidc_client_secret=keycloak.get_client_secret("metis", "gitlab"),
-        issuer_url=f"{keycloak_external_ssl_url}/auth/realms/metis",
-    )
-    kong.activate_response_transformer_plugin(
-        service_name="gitlab", headers_to_remove=["X-Frame-Options", "Content-Security-Policy"]
-    )
-    # compose.up(["gitlab", "minio"])
-    compose.up(["gitlab"])
-    gitlab.wait_ready(timeout=10 * 60)
-    compose.exec("gitlab", "update-ca-certificates")
-
-    # Install Prometheus
-    monitoring_namespace = "admin-plane"
-    kubernetes.create_namespace(monitoring_namespace)
-    helm.install(
-        release="prometheus", chart="bitnami/kube-prometheus", version="6.0.1", namespace=monitoring_namespace
-    )
-
-    # Deploy necessary images
-    tag = f"{private_ip}:4443/metis/studio:0.2"
-    studio_assets = utils.asset_path("mining_plane", "studio")
-    docker.build_image(f"{studio_assets}/image/Dockerfile", tag)
-    docker.push(tag)
-
-    tag = f"{private_ip}:4443/metis/miningui:0.2"
-    ui_assets = utils.asset_path("mining_plane", "ui")
-    docker.build_image(f"{ui_assets}/image/Dockerfile", tag)
-    docker.push(tag)
-
-    scdf_assets = utils.asset_path("mining_plane", "scdf")
-    tag = "springcloudstream/image-recognition-processor-kafka:patched"
-    docker.build_image(f"{scdf_assets}/scdf_app_patched_images/image-recognition/Dockerfile", tag)
-    tag = "springcloudstream/object-detection-processor-kafka:patched"
-    docker.build_image(f"{scdf_assets}/scdf_app_patched_images/object-detection/Dockerfile", tag)
+    patch_scdf_image("image-recognition")
+    patch_scdf_image("object-detection")

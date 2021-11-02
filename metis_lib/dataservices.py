@@ -18,14 +18,17 @@ from metis_lib.kong import Kong
 
 def install_alluxio(namespace: str) -> str:
     asset_path = utils.asset_path("data_plane", "alluxio")
-    helm.install(release="fluid", chart=f"{asset_path}/fluid-0.5.0.tgz", version="0.5.0")
+    helm.install(
+        release="fluid", chart=f"{asset_path}/fluid-0.5.0.tgz", version="0.5.0"
+    )
 
 
 def install_hive_metastore(namespace: str, alluxio_java_options: str):
     asset_path = utils.asset_path("data_plane", "hive")
     docker.build_image(f"{asset_path}/image/Dockerfile", "metis/hive:latest")
     values = templates.substitute(
-        f"{asset_path}/chart/hive-metastore/values.tpl.yaml", alluxio_java_options=alluxio_java_options
+        f"{asset_path}/chart/hive-metastore/values.tpl.yaml",
+        alluxio_java_options=alluxio_java_options,
     )
     with open(f"{asset_path}/chart/hive-metastore/values.yaml") as f:
         f.write(values)

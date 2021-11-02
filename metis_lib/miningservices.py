@@ -8,6 +8,7 @@ from tenacity.stop import stop_after_delay
 from tenacity.wait import wait_fixed
 
 from metis_lib import helm, kubernetes, sh, templates
+from metis_lib import keycloak
 from metis_lib.keycloak import Keycloak
 from metis_lib.kong import Kong
 from metis_lib.utils import (
@@ -30,7 +31,6 @@ def create_client(keycloak: Keycloak, username: str, domain: str, application: O
         redirected_uri="/*",
         base_url="/*",
     )
-    # client_id = keycloak.get_client_id("metis", client_name)client_secret = keycloak.get_client_secret("metis", client_name)
     keycloak.create_client_role("metis", client_name, "user")
     keycloak.assign_client_role_to_user("metis", client_name, username, "user")
     return client_name, keycloak.get_client_secret("metis", client_name)
@@ -61,7 +61,8 @@ def create_route(
             oidc_client_secret=client_secret,
         )
     kong.activate_response_transformer_plugin(
-        service_name=service_name, headers_to_remove=["X-Frame-Options", "Content-Security-Policy"]
+        service_name=service_name,
+        headers_to_remove=["X-Frame-Options", "Content-Security-Policy"],
     )
 
 
@@ -69,6 +70,10 @@ def create_namespace(
     username: str,
 ):
     kubernetes.create_namespace(username)
+
+
+def delete_namespace(username: str):
+    kubernetes.delete_namespace(username)
 
 
 def secure_namespace(
@@ -96,7 +101,14 @@ def install_monitoring_tools(domain: str, namespace: str, kong: Kong, keycloak: 
     monitoring_namespace = namespace
     kubernetes.create_namespace(monitoring_namespace)
     release_prefix = namespace
-    for dashboard in ["scdf-applications", "scdf-streams", "scdf-task-batch", "scdf-servers", "scdf-kafka-streams", "namespace"]:
+    for dashboard in [
+        "scdf-applications",
+        "scdf-streams",
+        "scdf-task-batch",
+        "scdf-servers",
+        "scdf-kafka-streams",
+        "namespace",
+    ]:
         grafana_dashboard = f"{grafana_assets}/{dashboard}.json"
         kubernetes.create_config_map(
             name=f"grafana-dashboards-{dashboard}",
@@ -107,7 +119,7 @@ def install_monitoring_tools(domain: str, namespace: str, kong: Kong, keycloak: 
     kubernetes.create_config_map(
         name="grafana-ini-config-map",
         from_file=f"{grafana_assets}/grafana.ini",
-        namespace=monitoring_namespace
+        namespace=monitoring_namespace,
     )
     secret_content = {
         "apiVersion": 1,
@@ -157,7 +169,9 @@ def install_monitoring_tools(domain: str, namespace: str, kong: Kong, keycloak: 
             "datasources.secretName": "grafana-datasources",
         },
     )
-    client_name, client_secret = create_client(keycloak=keycloak, domain=domain, username=namespace, application="grafana")
+    client_name, client_secret = create_client(
+        keycloak=keycloak, domain=domain, username=namespace, application="grafana"
+    )
 
     @retry(stop=stop_after_delay(60), wait=wait_fixed(2))
     def get_external_ip() -> str:
@@ -190,7 +204,7 @@ def install_scdf(domain: str, namespace: str, kong: Kong, keycloak: Keycloak):
         values=f"{assets}/values.yml",
         set_options={
             "metrics.serviceMonitor.namespace": namespace,
-            "server.configuration.metricsDashboard": f"https://grafana-{namespace}.{domain}"
+            "server.configuration.metricsDashboard": f"https://grafana-{namespace}.{domain}",
         },
         registry_private_ip=private_ip,
     )
@@ -250,7 +264,12 @@ def install_studio(
     # )
     private_ip = os.environ.get("PRIVATE_IP")
     tag = f"{private_ip}:4443/metis/studio:0.2"
-    kubernetes.apply(template_url=f"{assets}/pv.yml", namespace=None, storage_class_name=namespace, size=storage_size)
+    kubernetes.apply(
+        template_url=f"{assets}/pv.yml",
+        namespace=None,
+        storage_class_name=namespace,
+        size=storage_size,
+    )
     kubernetes.apply(template_url=f"{assets}/account.yml", namespace=namespace, username=namespace)
     kubernetes.apply(
         f"{assets}/metis-studio.yml",
@@ -263,10 +282,10 @@ def install_studio(
         registry_private_ip=private_ip,
         storage_class_name=namespace,
         size=storage_size,
-        domain=domain
+        domain=domain,
     )
 
-    kubernetes.wait_pod_ready("app=metis-studio", namespace, timeout=10 * 60)
+    kubernetes.wait_pod_ready("app=metis-studio", namespace, timeout=2 * 60)
 
     @retry(stop=stop_after_delay(60), wait=wait_fixed(2))
     def get_external_ip() -> str:
@@ -364,7 +383,7 @@ def install_ui(
     # studio_client_id = keycloak.get_client_id("metis", studio_name)
     # studio_client_secret = keycloak.get_client_secret("metis", studio_name)
 
-    client_id, client_secret = create_client(keycloak=keycloak, domain=domain, username=namespace)
+    client_id, client_secret = create_client(keycloak=keycloak, domain=domain, username=namespace, application="ui")
     create_route(
         kong,
         service_name=ui_name,
@@ -423,3 +442,69 @@ def deploy(
     keycloak.assign_client_role_to_user("metis", "gitlab", username, "dataminer")
 
     # secure_namespace(username, cpu_limit, memory_limit, gpu_limit, storage_limit)
+
+
+def delete_client(username: str, client: str):
+    metis_admin_password = os.environ.get("METIS_ADMIN_PASSWORD", "metis@admin01")
+    keycloak = Keycloak(
+        url=f"{admin_service_internal_url('keycloak', 8080)}/auth/admin",
+        username="admin",
+        password=metis_admin_password,
+        timeout=120,
+    )
+    realm_name = "metis"
+    keycloak_admin = keycloak.keycloak_admin
+    keycloak_admin.realm_name = realm_name
+    keycloak.delete_client(f"{client}-{username}")
+
+
+def delete_routes_services(username: str, client: str):
+    studio = ["codeserver", "filebrowser", "jupyterlab", "ungit"]
+    if client in studio:
+        service_name = f"studio-{username}-{client}"
+    else:
+        service_name = f"{client}-{username}"
+
+    kong = Kong()
+    routes_id = kong.get_route_id(service_name=service_name)
+    kong.delete_routes(routes_id=routes_id)
+    kong.delete_service(service_name=service_name)
+
+
+def delete_client_route_service(username: str, client: str):
+    # delete keycloakc,user, routes and services
+    delete_client(username=username, client=client)
+    delete_routes_services(username=username, client=client)
+
+
+def delete_all_clients_routes_services(username: str, clients: list):
+    for client in clients:
+        delete_client_route_service(username=username, client=client)
+
+
+def destroy(username: str):
+    metis_admin_password = os.environ.get("METIS_ADMIN_PASSWORD", "metis@admin01")
+    keycloak = Keycloak(
+        url=f"{admin_service_internal_url('keycloak', 8080)}/auth/admin",
+        username="admin",
+        password=metis_admin_password,
+        timeout=120,
+    )
+    realm_name = "metis"
+    keycloak_admin = keycloak.keycloak_admin
+    keycloak_admin.realm_name = realm_name
+    clients = [
+        "scdf",
+        "grafana",
+        "ungit",
+        "codeserver",
+        "filebrowser",
+        "jupyterlab",
+        "ui",
+    ]
+
+    delete_all_clients_routes_services(username=username, clients=clients)
+    keycloak.delete_user(username)
+
+    delete_namespace(username)
+    kubernetes.delete_pv(username)

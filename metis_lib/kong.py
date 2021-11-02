@@ -29,6 +29,7 @@ class Kong:
             "port": target_port,
             "protocol": target_protocol,
         }
+
         resp = requests.post(f"{self.kong_url}/services", json=payload)
         service = resp.json()
         if resp.status_code < 200 or resp.status_code >= 300:
@@ -38,7 +39,7 @@ class Kong:
             "service": {"id": service["id"]},
             "protocols": ["https"],
             "strip_path": strip_path,
-            "preserve_host": True
+            "preserve_host": True,
         }
         methods = []
         if match_host:
@@ -85,6 +86,10 @@ class Kong:
 
     def get_service_id(self, service_name: str) -> str:
         resp = requests.get(f"{self.kong_url}/services/{service_name}")
+        print(
+            f"{self.kong_url}/services/{service_name}",
+            requests.get(f"{self.kong_url}/services/{service_name}"),
+        )
         service = resp.json()
         if resp.status_code < 200 or resp.status_code >= 300:
             raise RuntimeError(service)
@@ -118,7 +123,9 @@ class Kong:
             raise RuntimeError(resp.text)
 
     def activate_response_transformer_plugin(
-        self, service_name: str, headers_to_remove: List[str],
+        self,
+        service_name: str,
+        headers_to_remove: List[str],
     ) -> None:
         payload = [("name", "response-transformer")]
         for header in headers_to_remove:
@@ -150,3 +157,16 @@ class Kong:
             if resp.status_code < 200 or resp.status_code >= 300:
                 raise RuntimeError(resp.text)
         return cert_id
+
+    def delete_routes(self, routes_id: str):
+        resp = requests.delete(f"{self.kong_url}/routes/{routes_id}")
+
+    def get_route_id(self, service_name: str) -> str:
+        resp = requests.get(f"{self.kong_url}/services/{service_name}/routes")
+        service = resp.json()
+        if resp.status_code < 200 or resp.status_code >= 300:
+            raise RuntimeError(service)
+        return service["data"][0]["id"]
+
+    def delete_service(self, service_name: str):
+        resp = requests.delete(f"{self.kong_url}/services/{service_name}")

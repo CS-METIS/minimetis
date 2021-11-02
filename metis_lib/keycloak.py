@@ -104,7 +104,9 @@ class Keycloak:
         keycloak_admin.assign_realm_roles(user_id=user_id, client_id=None, roles=[role])
         keycloak_admin.realm_name = "master"
 
-    def assign_client_role_to_user(self, realm_name: str, client_name: str, username: str, role_name: str):
+    def assign_client_role_to_user(
+        self, realm_name: str, client_name: str, username: str, role_name: str
+    ):
         keycloak_admin = self.keycloak_admin
         keycloak_admin.refresh_token()
         keycloak_admin.realm_name = realm_name
@@ -138,7 +140,7 @@ class Keycloak:
         name: str,
         root_url: str = f"https://{os.environ.get('DOMAIN', 'localhost')}",
         redirected_uri: Optional[str] = None,
-        base_url: Optional[str] = None
+        base_url: Optional[str] = None,
     ):
         keycloak_admin = self.keycloak_admin
         keycloak_admin.refresh_token()
@@ -158,7 +160,7 @@ class Keycloak:
                 "publicClient": False,
                 "redirectUris": [redirected_uri],
                 "adminUrl": "",
-                "baseUrl": base_url
+                "baseUrl": base_url,
             }
         )
         keycloak_admin.realm_name = "master"
@@ -209,3 +211,15 @@ class Keycloak:
         keycloak_admin.realm_name = realm_name
         client_id = keycloak_admin.get_client_id(client_name)
         return keycloak_admin.get_client(client_id)
+
+    def delete_client(self, client_name):
+        keycloak_admin = self.keycloak_admin
+        client_id = keycloak_admin.get_client_id(client_name=client_name)
+        keycloak_admin.delete_client(client_id=client_id)
+
+    def delete_user(self, username: str):
+        keycloak_admin = self.keycloak_admin
+
+        user_id = keycloak_admin.get_user_id(username)
+
+        keycloak_admin.delete_user(user_id=user_id)
