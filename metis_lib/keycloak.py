@@ -8,10 +8,8 @@ from keycloak.keycloak_admin import KeycloakAdmin  # type: ignore
 from keycloak.exceptions import raise_error_from_response, KeycloakGetError  # type: ignore
 
 from metis_lib import service
-
-URL_ADMIN_CLIENT_REALM_SCOPE_MAPPINGS = (
-    "admin/realms/{realm-name}/clients/{id}/scope-mappings/realm"
-)
+import logging
+URL_ADMIN_CLIENT_REALM_SCOPE_MAPPINGS = "admin/realms/{realm-name}/clients/{id}/scope-mappings/realm"
 
 
 @dataclass
@@ -21,9 +19,7 @@ class Mapper:
 
 
 class Keycloak:
-    def __init__(
-        self, url: str, username: str, password: str, timeout: Optional[float] = None
-    ) -> None:
+    def __init__(self, url: str, username: str, password: str, timeout: Optional[float] = None) -> None:
         service.wait_respond(url, timeout=timeout)
         self.keycloak_admin = KeycloakAdmin(
             server_url=url,
@@ -52,16 +48,12 @@ class Keycloak:
         keycloak_admin.create_realm_role({"name": role_name})
         keycloak_admin.realm_name = "master"
 
-    def create_client_role(
-        self, realm_name: str, client_name: str, role_name: str
-    ) -> None:
+    def create_client_role(self, realm_name: str, client_name: str, role_name: str) -> None:
         keycloak_admin = self.keycloak_admin
         keycloak_admin.refresh_token()
         keycloak_admin.realm_name = realm_name
         client_id = keycloak_admin.get_client_id(client_name)
-        keycloak_admin.create_client_role(
-            client_role_id=client_id, payload={"name": role_name, "clientRole": True}
-        )
+        keycloak_admin.create_client_role(client_role_id=client_id, payload={"name": role_name, "clientRole": True})
         keycloak_admin.realm_name = "master"
 
     def create_user(
@@ -86,16 +78,12 @@ class Keycloak:
                 "lastName": lastname,
                 "username": username,
                 "enabled": True,
-                "credentials": [
-                    {"type": "password", "temporary": False, "value": password}
-                ],
+                "credentials": [{"type": "password", "temporary": False, "value": password}],
             }
         )
         keycloak_admin.realm_name = "master"
 
-    def assign_realm_role_to_user(
-        self, realm_name: str, username: str, role_name: str
-    ) -> None:
+    def assign_realm_role_to_user(self, realm_name: str, username: str, role_name: str) -> None:
         keycloak_admin = self.keycloak_admin
         keycloak_admin.refresh_token()
         keycloak_admin.realm_name = realm_name
@@ -104,9 +92,7 @@ class Keycloak:
         keycloak_admin.assign_realm_roles(user_id=user_id, client_id=None, roles=[role])
         keycloak_admin.realm_name = "master"
 
-    def assign_client_role_to_user(
-        self, realm_name: str, client_name: str, username: str, role_name: str
-    ):
+    def assign_client_role_to_user(self, realm_name: str, client_name: str, username: str, role_name: str):
         keycloak_admin = self.keycloak_admin
         keycloak_admin.refresh_token()
         keycloak_admin.realm_name = realm_name
@@ -116,9 +102,7 @@ class Keycloak:
         keycloak_admin.assign_client_role(user_id, client_id, [role])
         keycloak_admin.realm_name = "master"
 
-    def add_realm_role_to_client_scope(
-        self, realm: str, client_name: str, role_name: str
-    ) -> None:
+    def add_realm_role_to_client_scope(self, realm: str, client_name: str, role_name: str) -> None:
         keycloak_admin = self.keycloak_admin
         keycloak_admin.refresh_token()
         keycloak_admin.realm_name = realm
@@ -130,9 +114,7 @@ class Keycloak:
             data=json.dumps([role]),
         )
         keycloak_admin.realm_name = "master"
-        return raise_error_from_response(
-            data_raw, KeycloakGetError, expected_codes=[204]
-        )
+        return raise_error_from_response(data_raw, KeycloakGetError, expected_codes=[204])
 
     def create_client(
         self,
@@ -182,9 +164,7 @@ class Keycloak:
         keycloak_admin.realm_name = "master"
         return client_id
 
-    def add_mapper_to_client(
-        self, realm_name: str, client_name: str, mapper_name: str, mapper_property: str
-    ):
+    def add_mapper_to_client(self, realm_name: str, client_name: str, mapper_name: str, mapper_property: str):
         keycloak_admin = self.keycloak_admin
         keycloak_admin.refresh_token()
         keycloak_admin.realm_name = realm_name
@@ -213,13 +193,19 @@ class Keycloak:
         return keycloak_admin.get_client(client_id)
 
     def delete_client(self, client_name):
-        keycloak_admin = self.keycloak_admin
-        client_id = keycloak_admin.get_client_id(client_name=client_name)
-        keycloak_admin.delete_client(client_id=client_id)
+        try:
+            keycloak_admin = self.keycloak_admin
+            client_id = keycloak_admin.get_client_id(client_name=client_name)
+            keycloak_admin.delete_client(client_id=client_id)
+        except KeycloakGetError:
+            logging.info(f"this client {client_name} is already delete or does not exist")
 
     def delete_user(self, username: str):
-        keycloak_admin = self.keycloak_admin
+        try:
+            keycloak_admin = self.keycloak_admin
 
-        user_id = keycloak_admin.get_user_id(username)
+            user_id = keycloak_admin.get_user_id(username)
 
-        keycloak_admin.delete_user(user_id=user_id)
+            keycloak_admin.delete_user(user_id=user_id)
+        except KeycloakGetError:
+            logging.info(f"this user  {username} is already delete or does not exist")

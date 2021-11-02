@@ -3,6 +3,7 @@ import json
 from typing import List, Optional
 from metis_lib.sh import run, call
 from metis_lib import templates
+import logging
 
 
 def apply(template_url: str, namespace: Optional[str] = None, **kwargs):
@@ -32,9 +33,7 @@ def wait_pod_ready(label: str, namespace: str = "default", timeout: int = -1) ->
     else:
         namespace_opt = f"-n {namespace}"
     try:
-        run(
-            f"kubectl wait {namespace_opt} --for=condition=ready pod --selector={label} --timeout={timeout}s"
-        )
+        run(f"kubectl wait {namespace_opt} --for=condition=ready pod --selector={label} --timeout={timeout}s")
         return True
     except RuntimeError:
         return False
@@ -94,9 +93,7 @@ def add_host_aliases(
     hostnames: List[str],
     resource_type="deployment",
 ):
-    resource_spec_str = call(
-        f"kubectl get {resource_type} {resource_name} -n {namespace} -o json"
-    )
+    resource_spec_str = call(f"kubectl get {resource_type} {resource_name} -n {namespace} -o json")
     resource_spec_obj = json.loads(resource_spec_str)
     containers_spec = resource_spec_obj["spec"]["template"]["spec"]
     aliases = []
@@ -122,9 +119,7 @@ def create_config_map(
     key_name_opt = ""
     if key_name:
         key_name_opt = f"{key_name}="
-    run(
-        f"kubectl {namespace_opt}create configmap {name} --from-file={key_name_opt}{from_file}"
-    )
+    run(f"kubectl {namespace_opt}create configmap {name} --from-file={key_name_opt}{from_file}")
 
 
 def create_secret(
@@ -138,14 +133,18 @@ def create_secret(
         key_name_opt = f"{key_name}="
     if namespace:
         namespace_opt = f"-n {namespace} "
-    run(
-        f"kubectl create {namespace_opt}secret generic {name} --from-file={key_name_opt}{from_file}"
-    )
+    run(f"kubectl create {namespace_opt}secret generic {name} --from-file={key_name_opt}{from_file}")
 
 
 def delete_namespace(namespace: str):
-    run(f"kubectl delete ns {namespace}")
+    try:
+        run(f"kubectl delete ns {namespace}")
+    except RuntimeError:
+        logging.info(f"The namespace {namespace} is already delete or does not exist")
 
 
 def delete_pv(namespace: str):
-    run(f"kubectl delete pv shared-volume-{namespace}")
+    try:
+        run(f"kubectl delete pv shared-volume-{namespace}")
+    except RuntimeError:
+        logging.info(f"The pv {namespace} is already delete or does not exist")

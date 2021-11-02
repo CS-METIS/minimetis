@@ -8,7 +8,8 @@ from tenacity.stop import stop_after_delay
 from tenacity.wait import wait_fixed
 
 from metis_lib import helm, kubernetes, sh, templates
-from metis_lib import keycloak
+
+# from metis_lib import keycloak
 from metis_lib.keycloak import Keycloak
 from metis_lib.kong import Kong
 from metis_lib.utils import (
@@ -483,6 +484,7 @@ def delete_all_clients_routes_services(username: str, clients: list):
 
 
 def destroy(username: str):
+
     metis_admin_password = os.environ.get("METIS_ADMIN_PASSWORD", "metis@admin01")
     keycloak = Keycloak(
         url=f"{admin_service_internal_url('keycloak', 8080)}/auth/admin",
@@ -502,9 +504,9 @@ def destroy(username: str):
         "jupyterlab",
         "ui",
     ]
-
-    delete_all_clients_routes_services(username=username, clients=clients)
     keycloak.delete_user(username)
 
     delete_namespace(username)
     kubernetes.delete_pv(username)
+
+    delete_all_clients_routes_services(username=username, clients=clients)

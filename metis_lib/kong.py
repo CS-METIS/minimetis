@@ -2,12 +2,11 @@ from typing import Any, Dict, List, Optional
 import os
 import requests
 from metis_lib import service
+import logging
 
 
 class Kong:
-    def __init__(
-        self, kong_url: str = f"http://{os.environ.get('DOMAIN', 'localhost')}:8001"
-    ) -> None:
+    def __init__(self, kong_url: str = f"http://{os.environ.get('DOMAIN', 'localhost')}:8001") -> None:
         self.kong_url = kong_url
 
     def wait_ready(self, timeout: Optional[float] = None):
@@ -116,9 +115,7 @@ class Kong:
         if redirect_uri_path:
             payload["config.redirect_uri_path"] = redirect_uri_path
         service_id = self.get_service_id(service_name)
-        resp = requests.post(
-            f"{self.kong_url}/services/{service_id}/plugins", data=payload
-        )
+        resp = requests.post(f"{self.kong_url}/services/{service_id}/plugins", data=payload)
         if resp.status_code < 200 or resp.status_code >= 300:
             raise RuntimeError(resp.text)
 
@@ -131,15 +128,11 @@ class Kong:
         for header in headers_to_remove:
             payload.append(("config.remove.headers", header))
         service_id = self.get_service_id(service_name)
-        resp = requests.post(
-            f"{self.kong_url}/services/{service_id}/plugins", data=payload
-        )
+        resp = requests.post(f"{self.kong_url}/services/{service_id}/plugins", data=payload)
         if resp.status_code < 200 or resp.status_code >= 300:
             raise RuntimeError(resp.text)
 
-    def add_certificate(
-        self, certificate_file: str, private_key_file: str, domains: List[str]
-    ) -> str:
+    def add_certificate(self, certificate_file: str, private_key_file: str, domains: List[str]) -> str:
         with open(certificate_file) as f:
             cert = f.read()
         with open(private_key_file) as f:
@@ -151,22 +144,31 @@ class Kong:
         cert_id = resp.json()["id"]
         for domain in domains:
             payload = {"name": domain, "certificate": {"id": cert_id}}
-            resp = requests.post(
-                f"{self.kong_url}/certificates/{cert_id}/snis", data=payload
-            )
+            resp = requests.post(f"{self.kong_url}/certificates/{cert_id}/snis", data=payload)
             if resp.status_code < 200 or resp.status_code >= 300:
                 raise RuntimeError(resp.text)
         return cert_id
 
     def delete_routes(self, routes_id: str):
-        resp = requests.delete(f"{self.kong_url}/routes/{routes_id}")
+        try:
+            requests.delete(f"{self.kong_url}/routes/{routes_id}")
+        except None:
+            print(f"the routes :{routes_id} does not exist or has already been deleted")
 
     def get_route_id(self, service_name: str) -> str:
-        resp = requests.get(f"{self.kong_url}/services/{service_name}/routes")
-        service = resp.json()
-        if resp.status_code < 200 or resp.status_code >= 300:
-            raise RuntimeError(service)
-        return service["data"][0]["id"]
+        try:
+            resp = requests.get(f"{self.kong_url}/services/{service_name}/routes")
+            service = resp.json()
+            if resp.status_code < 200 or resp.status_code >= 300:
+                raise RuntimeError(service)
+            return service["data"][0]["id"]
+        except TypeError:
+            logging.warning(f"the route for {service_name} does not exist")
+        except RuntimeError:
+            logging.warning(f"the route for {service_name} does not exist")
 
     def delete_service(self, service_name: str):
-        resp = requests.delete(f"{self.kong_url}/services/{service_name}")
+        try:
+            requests.delete(f"{self.kong_url}/services/{service_name}")
+        except None:
+            logging.info(f"the services :{service_name} does not exist or has already been deleted")

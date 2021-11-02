@@ -2,7 +2,6 @@ import os
 import shutil
 
 from metis_lib import helm, kubernetes
-from metis_lib import keycloak
 from metis_lib.portainer import Portainer
 from metis_lib.kong import Kong
 from metis_lib.keycloak import Keycloak
