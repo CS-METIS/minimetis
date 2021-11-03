@@ -120,7 +120,7 @@ RUN code-server --install-extension Pivotal.vscode-boot-dev-pack
 
 ADD settings.json /home/eopfdev/.local/share/code-server/User
 
-RUN npm install -g ungit
+# RUN npm install -g ungit
 
 USER root
 WORKDIR /
@@ -141,7 +141,7 @@ ADD bootstrap.service /etc/systemd/system/bootstrap.service
 ADD jupyterlab.service /etc/systemd/system/jupyterlab.service
 ADD codeserver.service /etc/systemd/system/codeserver.service
 ADD filebrowser.service /etc/systemd/system/filebrowser.service
-ADD gitwebui.service /etc/systemd/system/gitwebui.service
+#ADD gitwebui.service /etc/systemd/system/gitwebui.service
 
 RUN curl -L https://raw.githubusercontent.com/gdraheim/docker-systemctl-replacement/master/files/docker/systemctl3.py --output /usr/local/bin/systemctl
 RUN curl -L https://raw.githubusercontent.com/gdraheim/docker-systemctl-replacement/master/files/docker/journalctl3.py --output /usr/local/bin/journalctl

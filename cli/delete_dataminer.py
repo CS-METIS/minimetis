@@ -14,6 +14,6 @@ root.setLevel(logging.INFO)
 
 if __name__ == "__main__":
     # username = input("Enter user username\n>>")
-    username = "toto"
+    username = "demo"
 
     miningservices.destroy(username=username)

@@ -73,13 +73,6 @@
                         >
                         Gitlab
                         </a>
-                         <a 
-                            class="button"
-                            onclick="switch_frame('ungit')"
-                        >
-                        Ungit
-                        </a>
-
 
                     </div>
                 </div>
@@ -92,9 +85,8 @@
     <iframe id="workflows" src="https://scdf-${username}.${domain}/dashboard/index.html" class="hidden"></iframe>
     <iframe id="browser" src="https://filebrowser-${username}.${domain}/" class="hidden"></iframe>
     <iframe id="gitlab" src="https://${domain}/gitlab" class="hidden"></iframe>
-    <iframe id="ungit" src="https://ungit-${username}.${domain}/" class="hidden"></iframe>
     <script type="text/javascript">
-        var elements = [["code", 1], ["notebooks", 1], ["workflows", 0], ["browser", 1], ["gitlab", 1], ["ungit", 1]]
+        var elements = [["code", 1], ["notebooks", 1], ["workflows", 0], ["browser", 1], ["gitlab", 1]]
 
         function switch_frame(frame) {
             elements.forEach(a => {

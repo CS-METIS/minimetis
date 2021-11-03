@@ -108,7 +108,8 @@ class Kong:
             "config.client_secret": oidc_client_secret,
             "config.bearer_only": "no",
             "config.realm": "metis",
-            "config.introspection_endpoint": f"{oidc_provider_url}/auth/realms/metis/protocol/openid-connect/token/introspect",
+            "config.introspection_endpoint":
+                f"{oidc_provider_url}/auth/realms/metis/protocol/openid-connect/token/introspect",
             "config.discovery": f"{oidc_provider_url}/auth/realms/metis/.well-known/openid-configuration",
             "config.session_secret": "bXkgc2Vzc2lvbiBzZWNyZXQ=",
         }
@@ -155,12 +156,13 @@ class Kong:
         except None:
             print(f"the routes :{routes_id} does not exist or has already been deleted")
 
-    def get_route_id(self, service_name: str) -> str:
+    def get_route_id(self, service_name: str) -> Optional[str]:
         try:
             resp = requests.get(f"{self.kong_url}/services/{service_name}/routes")
             service = resp.json()
             if resp.status_code < 200 or resp.status_code >= 300:
-                raise RuntimeError(service)
+                logging.warning(f"enable to retrieve the route_id of {service_name} because of ")
+                return None
             return service["data"][0]["id"]
         except TypeError:
             logging.warning(f"the route for {service_name} does not exist")
@@ -171,4 +173,4 @@ class Kong:
         try:
             requests.delete(f"{self.kong_url}/services/{service_name}")
         except None:
-            logging.info(f"the services :{service_name} does not exist or has already been deleted")
+            logging.warning(f"the services :{service_name} does not exist or has already been deleted")

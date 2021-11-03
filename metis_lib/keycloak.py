@@ -178,7 +178,7 @@ class Keycloak:
                 "user.attribute": mapper_property,
                 "id.token.claim": "true",
                 "access.token.claim": "true",
-                "userinfo.token.claim": "true",
+                "userwarning.token.claim": "true",
             },
         }
 
@@ -198,7 +198,7 @@ class Keycloak:
             client_id = keycloak_admin.get_client_id(client_name=client_name)
             keycloak_admin.delete_client(client_id=client_id)
         except KeycloakGetError:
-            logging.info(f"this client {client_name} is already delete or does not exist")
+            logging.warning(f"this client {client_name} is already delete or does not exist")
 
     def delete_user(self, username: str):
         try:
@@ -208,4 +208,4 @@ class Keycloak:
 
             keycloak_admin.delete_user(user_id=user_id)
         except KeycloakGetError:
-            logging.info(f"this user  {username} is already delete or does not exist")
+            logging.warning(f"this user  {username} is already delete or does not exist")

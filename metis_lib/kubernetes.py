@@ -140,11 +140,11 @@ def delete_namespace(namespace: str):
     try:
         run(f"kubectl delete ns {namespace}")
     except RuntimeError:
-        logging.info(f"The namespace {namespace} is already delete or does not exist")
+        logging.warning(f"The namespace {namespace} is already delete or does not exist")
 
 
 def delete_pv(namespace: str):
     try:
         run(f"kubectl delete pv shared-volume-{namespace}")
     except RuntimeError:
-        logging.info(f"The pv {namespace} is already delete or does not exist")
+        logging.warning(f"The pv {namespace} is already delete or does not exist")

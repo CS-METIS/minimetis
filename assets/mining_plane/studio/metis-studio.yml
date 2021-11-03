@@ -19,10 +19,10 @@ spec:
       protocol: TCP
       port: 8082
       targetPort: 8082
-    - name: ungit
-      protocol: TCP
-      port: 8083
-      targetPort: 8083
+    # - name: ungit
+    #   protocol: TCP
+    #   port: 8083
+    #   targetPort: 8083
 ---
 apiVersion: apps/v1
 kind: StatefulSet
@@ -75,8 +75,8 @@ spec:
               containerPort: 8081
             - name: filebrowser
               containerPort: 8888
-            - name: ungit 
-              containerPort: 9000
+            # - name: ungit 
+            #   containerPort: 9000
           resources:
             limits:
               cpu: "16"

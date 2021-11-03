@@ -1,5 +1,5 @@
 from metis_lib import miningservices
-from getpass import getpass
+# from getpass import getpass
 
 if __name__ == "__main__":
     # user_email = input("Enter miner email address\n>>")

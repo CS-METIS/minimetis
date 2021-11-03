@@ -3,12 +3,12 @@ function start_services {
     systemctl enable codeserver.service
     systemctl enable jupyterlab.service
     systemctl enable filebrowser.service
-    systemctl enable gitwebui.service
+    # systemctl enable gitwebui.service
 
     systemctl start codeserver.service
     systemctl start jupyterlab.service
     systemctl start filebrowser.service
-    systemctl start gitwebui.service
+    # systemctl start gitwebui.service
 }
 
 
@@ -23,7 +23,7 @@ function rename_user {
     sed -i "s/USER/${USERNAME}/g" /etc/systemd/system/jupyterlab.service
     sed -i "s/USER/${USERNAME}/g" /etc/systemd/system/codeserver.service
     sed -i "s/USER/${USERNAME}/g" /etc/systemd/system/filebrowser.service
-    sed -i "s/USER/${USERNAME}/g" /etc/systemd/system/gitwebui.service
+    # sed -i "s/USER/${USERNAME}/g" /etc/systemd/system/gitwebui.service
     sed -i "s/eopfdev/${USERNAME}/g" /etc/subuid
     sed -i "s/eopfdev/${USERNAME}/g" /etc/subgid
 
